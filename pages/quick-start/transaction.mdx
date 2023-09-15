@@ -1,6 +1,87 @@
-# Installation
+# Transaction
 
-Install BSAFE SDK in your project Typescript project.
-```shell
-npm install bsafe
+Lorem ipsum dolor sit amet, consectetur adipisicing elit. Corporis illo incidunt, magni placeat quaerat ut! Quisquam, reiciendis, voluptate.
+Aliquid, consequuntur doloremque eligendi error incidunt inventore neque quae quam quo saepe.
+
+## Instance transfer
+
+Lorem ipsum dolor sit amet, consectetur adipisicing elit. Consectetur eos iste minus nam odio quis sapiente? Beatae consequatur excepturi
+laborum molestiae nihil quia sequi temporibus veniam? Ad blanditiis provident veritatis.
+
+```ts
+import {Vault} from "bsafe";
+
+const vault = new Vault({
+    configurable: {
+        network: 'FUEL_NETWORK',
+        SIGNATURES_COUNT: 1,
+        SIGNERS: ['FUEL_ACCOUNT_ADDRESS'],
+        HASH_PREDUCATE: undefined,
+    }
+});
+
+const transfer = vault.includeTransaction([
+    {
+        amount: bn(1_000).format(),
+        assetId: 'ASSET_ID',
+        to: 'FUEL_ADDRESS'
+    }
+], []);
+
+console.log(tranfer);
 ```
+
+import {InstanceTransaction} from "../../components/transaction/intance";
+
+<InstanceTransaction />
+
+## Sign transfer
+
+Lorem ipsum dolor sit amet, consectetur adipisicing elit. Deserunt excepturi exercitationem fuga impedit omnis porro quas qui quos recusandae voluptatibus.
+Aliquid doloremque ea fugiat repellendus totam. Dolor exercitationem modi praesentium!
+
+```ts
+const transfer = vault.includeTransaction([
+    {
+        amount: bn(1_000).format(),
+        assetId: 'ASSET_ID',
+        to: 'FUEL_ADDRESS'
+    }
+], []);
+
+const wallet = await fuel.getWallet('FUEL CURRENT ACCOUNT');
+const signature = await wallet.signMessage(transfer.transaction.getHashTxId());
+
+transfer.transaction.witnesses = [signature];
+
+console.log(transfer.transaction.witnesses);
+```
+
+import {SignTransaction} from "../../components/transaction/sign";
+
+<SignTransaction />
+
+## Send transaction
+
+Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusantium ad blanditiis enim optio quas? Alias fugit iure omnis,
+quasi reprehenderit sequi similique temporibus ullam vel voluptatem. Amet exercitationem fugit possimus!
+
+```ts
+const transfer = vault.includeTransaction([
+    {
+        amount: bn(1_000).format(),
+        assetId: 'ASSET_ID',
+        to: 'FUEL_ADDRESS'
+    }
+], []);
+
+// Set all signatures and check if all account signed
+
+const transactionResponse = await transfer.transaction.sendTransaction();
+
+console.log(transactionResponse)
+```
+
+import {SendTransaction} from "../../components/transaction/send";
+
+<SendTransaction />

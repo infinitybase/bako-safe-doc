@@ -1,5 +1,5 @@
 import {Vault} from "bsafe";
-import {useState} from "react";
+import {useMemo, useState} from "react";
 import {useFuel} from "./fuel";
 import {CoinQuantity} from "@fuel-ts/providers";
 import {bn} from "fuels";
@@ -10,6 +10,10 @@ const useVault = () => {
     const [vault, setVault] = useState<Vault | null>(null)
     const [assets, setAssets] = useState<CoinQuantity[]>([])
     const [balance, setBalance] = useState('')
+
+    const hasBalance = useMemo(() => {
+        return bn(bn.parseUnits(balance)).gt(bn.parseUnits('0.000000001'));
+    }, [balance]);
 
     const create = () => {
         const vaultInstance = new Vault({
@@ -54,6 +58,7 @@ const useVault = () => {
         vault,
         assets,
         balance,
+        hasBalance,
         create,
         findAssets,
         findBalance,
