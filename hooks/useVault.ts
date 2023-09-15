@@ -1,8 +1,8 @@
 import {Vault} from "bsafe";
 import {useState} from "react";
 import {useFuel} from "./fuel";
-import {bn} from "@fuel-ts/math";
 import {CoinQuantity} from "@fuel-ts/providers";
+import {bn} from "fuels";
 
 const useVault = () => {
     const [fuel] = useFuel();

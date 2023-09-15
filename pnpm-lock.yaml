@@ -5,12 +5,18 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  '@fuel-ts/providers':
+    specifier: ^0.57.0
+    version: 0.57.0
   '@fuel-wallet/sdk':
     specifier: ^0.11.0
     version: 0.11.0(dexie@3.2.4)(fuels@0.57.0)
   bsafe:
     specifier: ^0.0.9
     version: 0.0.9(react-dom@18.2.0)(react@18.2.0)(typescript@4.9.3)
+  fuels:
+    specifier: ^0.57.0
+    version: 0.57.0
   next:
     specifier: ^13.0.6
     version: 13.0.6(react-dom@18.2.0)(react@18.2.0)
