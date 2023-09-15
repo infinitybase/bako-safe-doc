@@ -8,6 +8,8 @@ Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aut eius eos expedita 
 A consequuntur corporis error hic id magnam minus nam, quae quibusdam totam! Animi, beatae?
 
 ```tsx copy
+import {Vault} from "bsafe";
+
 new Vault({
     configurable: {
         network: 'FUEL_NETWORK',
@@ -18,8 +20,76 @@ new Vault({
 })
 ```
 
-import {CreateVault} from "../../components";
+## Address
+Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aut eius eos expedita facilis similique temporibus totam.
+A consequuntur corporis error hic id magnam minus nam, quae quibusdam totam! Animi, beatae?
 
-<CreateVault />
+```tsx copy
+import {Vault} from "bsafe";
 
+const vault = new Vault({
+    configurable: {
+        network: 'FUEL_NETWORK',
+        SIGNATURES_COUNT: 1,
+        SIGNERS: ['FUEL_ACCOUNT_ADDRESS'],
+        HASH_PREDUCATE: undefined,
+    }
+});
+
+console.log(vault.address); // fuel1123klajsdh....
+```
+
+import {VaultAddress} from "../../components";
+
+<VaultAddress />
+
+## Balance
+Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aut eius eos expedita facilis similique temporibus totam.
+A consequuntur corporis error hic id magnam minus nam, quae quibusdam totam! Animi, beatae?
+
+```tsx copy
+import {Vault} from "bsafe";
+
+const vault = new Vault({
+    configurable: {
+        network: 'FUEL_NETWORK',
+        SIGNATURES_COUNT: 1,
+        SIGNERS: ['FUEL_ACCOUNT_ADDRESS'],
+        HASH_PREDUCATE: undefined,
+    }
+});
+
+const balance = await vault.getBalance();
+
+console.log(balance); // Result: 0.0000000
+```
+
+import {VaultBalance} from "../../components";
+
+<VaultBalance />
+
+## Assets
+Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aut eius eos expedita facilis similique temporibus totam.
+A consequuntur corporis error hic id magnam minus nam, quae quibusdam totam! Animi, beatae?
+
+```tsx copy
+import {Vault} from "bsafe";
+
+const vault = new Vault({
+    configurable: {
+        network: 'FUEL_NETWORK',
+        SIGNATURES_COUNT: 1,
+        SIGNERS: ['FUEL_ACCOUNT_ADDRESS'],
+        HASH_PREDUCATE: undefined,
+    }
+});
+
+const assets = await vault.getBalances();
+
+console.log(assets); // CoinQuantity[]
+```
+
+import {VaultAssets} from "../../components";
+
+<VaultAssets />
 
