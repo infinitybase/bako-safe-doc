@@ -1,7 +1,9 @@
 {
   "index": "Introduction",
-  "another": "Another Page",
-  "advanced": "Advanced (A Folder)",
+  "how-it-works": "How it works?",
+  "quick-start": {
+    "title": "Quick Start"
+  },
   "about": {
     "title": "About",
     "type": "page"
