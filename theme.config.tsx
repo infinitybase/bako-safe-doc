@@ -1,6 +1,6 @@
 import React from 'react'
 import {DocsThemeConfig} from 'nextra-theme-docs'
-import logo from './assets/logo.svg'
+import logo from './assets/logo.png'
 import favicon from './assets/favicon.ico'
 import Image from "next/image";
 
@@ -14,10 +14,7 @@ const config: DocsThemeConfig = {
         </>
     ),
     logo: (
-        <div style={{display: 'flex', alignItems: 'center'}}>
-            <Image src={logo} width={30} alt="Bsafe logo"/>
-            <div style={{marginLeft: 10}}>SAFE</div>
-        </div>
+        <Image src={logo} width={90} alt="Bsafe logo"/>
     ),
     project: {
         link: 'https://github.com/infinitybase/bsafe',
