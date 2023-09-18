@@ -1,11 +1,20 @@
 # Vault
 
-Lorem ipsum dolor sit amet, consectetur adipisicing elit. Corporis illo incidunt, magni placeat quaerat ut! Quisquam, reiciendis, voluptate.
-Aliquid, consequuntur doloremque eligendi error incidunt inventore neque quae quam quo saepe.
+Our Vault extends all the features of Fuel Predicate, below we will explain how to generate an instance and manipulate your vault.
+
+import {Callout} from "nextra/components";
+
+<Callout type="info">
+    In this steps we will recommend install [Fuel Wallet (Chrome extensions)](https://chrome.google.com/webstore/detail/fuel-wallet/dldjpboieedgcmpkchcjcbijingjcgok?hl=pt-br) to interact with our doc.
+</Callout>
 
 ## Create
-Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aut eius eos expedita facilis similique temporibus totam.
-A consequuntur corporis error hic id magnam minus nam, quae quibusdam totam! Animi, beatae?
+To create a Vault instance you need to pass the Configurables with the following parameters:
+
+- **network**: url of Fuel Network, in this versions is working with (beta-3)
+- **SIGNATURES_COUNT**: length of required signatures
+- **SIGNERS**: all addresses included in the Vault
+- **HASH_PREDUCATE**: hash to instantiate an existing Vault
 
 ```tsx copy
 import {Vault} from "bsafe";
@@ -21,8 +30,8 @@ new Vault({
 ```
 
 ## Address
-Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aut eius eos expedita facilis similique temporibus totam.
-A consequuntur corporis error hic id magnam minus nam, quae quibusdam totam! Animi, beatae?
+When instantiating your Vault, it is possible to get the address of
+your Vault with the following property `vault.address`
 
 ```tsx copy
 import {Vault} from "bsafe";
@@ -44,8 +53,8 @@ import {VaultAddress} from "../../components";
 <VaultAddress />
 
 ## Balance
-Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aut eius eos expedita facilis similique temporibus totam.
-A consequuntur corporis error hic id magnam minus nam, quae quibusdam totam! Animi, beatae?
+With your Vault instance, you can search for the balance in ETH with the following method `vault.getBalance()`
+this method will return a [BN](https://github.com/indutny/bn.js/), to convert in string execute `balance.format()`
 
 ```tsx copy
 import {Vault} from "bsafe";
@@ -61,7 +70,7 @@ const vault = new Vault({
 
 const balance = await vault.getBalance();
 
-console.log(balance); // Result: 0.0000000
+console.log(balance.format()); // Result: 0.0000000
 ```
 
 import {VaultBalance} from "../../components";
@@ -69,8 +78,10 @@ import {VaultBalance} from "../../components";
 <VaultBalance />
 
 ## Assets
-Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aut eius eos expedita facilis similique temporibus totam.
-A consequuntur corporis error hic id magnam minus nam, quae quibusdam totam! Animi, beatae?
+To search for all Assets in your predicate, run the `vault.getBalances()` method.
+This method will return a list of CoinQuantities with the following properties:
+- amount: value of your Asset in BN
+- assetId: identifier of your asset "0x000...."
 
 ```tsx copy
 import {Vault} from "bsafe";

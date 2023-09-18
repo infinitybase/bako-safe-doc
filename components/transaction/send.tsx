@@ -3,7 +3,6 @@ import {useEffect} from "react";
 import {Example} from "../example";
 import {IsConnected} from "../fuel/IsConnected";
 import {useTransaction} from "../../hooks/useTransaction";
-import {bn} from "fuels";
 
 const SendTransaction = () => {
     const {create, vault, balance, hasBalance, sendBalance, findBalance} = useVault();

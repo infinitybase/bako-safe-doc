@@ -3,15 +3,5 @@
   "how-it-works": "How it works?",
   "quick-start": {
     "title": "Quick Start"
-  },
-  "about": {
-    "title": "About",
-    "type": "page"
-  },
-  "contact": {
-    "title": "Contact ↗",
-    "type": "page",
-    "href": "https://twitter.com/shuding_",
-    "newWindow": true
   }
 }
