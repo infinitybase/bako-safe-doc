@@ -29,7 +29,7 @@ const InstanceTransaction = () => {
                     <>
                         Transcation hash:{' '}
                         <Example.Text as="b">
-                            {transactionInstance.hash}
+                            {transactionInstance?.BSAFETransaction?.hash}
                         </Example.Text>
                     </>
                 )}

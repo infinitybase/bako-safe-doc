@@ -35,11 +35,6 @@ const transfer = vault.includeTransaction([
 
 console.log(tranfer);
 ```
-
-import {InstanceTransaction} from "../../components/transaction/intance";
-
-<InstanceTransaction/>
-
 ## Sign transfer
 
 To execute the transfers it is necessary to sign it, through the fuel wallet it is possible to sign the message with the
@@ -62,10 +57,6 @@ transfer.transaction.witnesses = [signature];
 
 console.log(transfer.transaction.witnesses);
 ```
-
-import {SignTransaction} from "../../components/transaction/sign";
-
-<SignTransaction/>
 
 ## Send transaction
 

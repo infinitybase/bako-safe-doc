@@ -1,4 +1,4 @@
-import {IVaultTransfer, Vault} from "bsafe";
+import {Transfer, Vault} from "bsafe";
 import {bn} from "fuels";
 import {useState} from "react";
 import {useFuel} from "./fuel";
@@ -8,19 +8,22 @@ const NativeAssetId =
 
 const useTransaction = (vault?: Vault) => {
     const [fuel] = useFuel();
-    const [transactionInstance, setTransactionInstance] = useState<IVaultTransfer | null>(null)
+    const [transactionInstance, setTransactionInstance] = useState<Transfer | null>(null)
     const [isSigned, setIsSigned] = useState(false)
     const [isSending, setIsSending] = useState(false)
     const [transactionResponse, setTransactionResponse] = useState<{ link: string, gasUsed: string } | null>(null)
 
     const instanceTransaction = async () => {
-        const transfer = await vault!.includeTransaction([
-            {
-                amount: bn(bn.parseUnits('0.00001')).format(),
-                assetId: NativeAssetId,
-                to: vault!.getConfigurable().SIGNERS[0]
-            }
-        ], []);
+        const transfer = await vault.BSAFEIncludeTransaction({
+            name: 'BSAFE Doc transaction',
+            assets: [
+                {
+                    amount: bn(bn.parseUnits('0.00001')).format(),
+                    assetId: NativeAssetId,
+                    to: vault!.getConfigurable().SIGNERS[0]
+                }
+            ],
+        });
 
         setTransactionInstance(transfer);
 
@@ -32,9 +35,9 @@ const useTransaction = (vault?: Vault) => {
             const transfer = await instanceTransaction();
             const account = await fuel.currentAccount();
             const wallet = await fuel.getWallet(account);
-            const signature = await wallet.signMessage(transfer.transaction.getHashTxId());
+            const signature = await wallet.signMessage(transfer.getHashTxId());
 
-            transfer.transaction.witnesses = [signature]
+            // transfer.transaction.witnesses = [signature]
 
             setTransactionInstance(transfer);
             setIsSigned(true);
@@ -49,12 +52,12 @@ const useTransaction = (vault?: Vault) => {
         try {
             setIsSending(true);
             const transfer = await signTransaction();
-            const transactionResponse = await transfer.transaction.sendTransaction();
+            // const transactionResponse = await transfer.transaction.sendTransaction();
 
-            setTransactionResponse({
-                gasUsed: transactionResponse.gasUsed,
-                link: transactionResponse.block,
-            })
+            // setTransactionResponse({
+            //     gasUsed: transactionResponse.gasUsed,
+            //     link: transactionResponse.block,
+            // })
         } catch (e) {
             console.log(e)
         } finally {
