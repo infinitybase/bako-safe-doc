@@ -2,10 +2,10 @@
 
 After creating your Vault instance and sending balance to it, you can interact with it by creating transactions and sending them to Fuel accounts.
 
-## Instance transfer
+## Create
 
-To create an instance of a transfer, you need your Vault instance, execute the `vault.includeTransaction()`
-method passing `ITransferAsset[]` with the following properties:
+To create an instance of a transfer, you need your Vault instance, execute the `vault.BSAFEIncludeTransaction()`
+method passing `ITransferAsset[]` in `asset` prop with the following properties:
 
 | Prop    |            Description             |  Value |      Example |
 |:--------|:----------------------------------:|-------:|-------------:|
@@ -13,78 +13,79 @@ method passing `ITransferAsset[]` with the following properties:
 | assetId |            Id of asset             | string |   0x00000... |
 | to      | Address of you transfer this asset | string | fuel1flop... |
 
-```ts
+```ts copy
 import {Vault} from "bsafe";
 
-const vault = new Vault({
-    configurable: {
-        network: 'FUEL_NETWORK',
-        SIGNATURES_COUNT: 1,
-        SIGNERS: ['FUEL_ACCOUNT_ADDRESS'],
-        HASH_PREDUCATE: undefined,
-    }
-});
+const vault = await Vault.create();
 
-const transfer = vault.includeTransaction([
-    {
+const tranfer = await vault.BSAFEIncludeTransaction({
+    name: 'Transaction One',
+    assets: [{
         amount: bn(1_000).format(),
         assetId: 'ASSET_ID',
         to: 'FUEL_ADDRESS'
-    }
-], []);
+    }],
+    witnesses: [], // Not required
+});
 
 console.log(tranfer);
 ```
-## Sign transfer
 
-To execute the transfers it is necessary to sign it, through the fuel wallet it is possible to sign the message with the
-transaction hash using the method `wallet.signMessage(transfer.transaction.getHashTxId())` and adding this signature to the
-transaction through from the `transfer.transaction.witnesses` property.
+If the vault is authenticated, it is possible to access the information stored in it.
 
-```ts
-const transfer = vault.includeTransaction([
-    {
-        amount: bn(1_000).format(),
-        assetId: 'ASSET_ID',
-        to: 'FUEL_ADDRESS'
-    }
-], []);
+```ts copy
+console.log(tranfer.BSAFEScript);
+console.log(tranfer.BSAFETransaction);
+console.log(tranfer.BSAFETransactionId);
+```
 
-const wallet = await fuel.getWallet('FUEL CURRENT ACCOUNT');
-const signature = await wallet.signMessage(transfer.transaction.getHashTxId());
+## Get transaction
 
-transfer.transaction.witnesses = [signature];
+Authentication is necessary to access a transaction by ID.
 
-console.log(transfer.transaction.witnesses);
+```ts copy
+const tranfer = await vault.BSAFEGetTransaction(transactionId);
+
+console.log(tranfer.BSAFETransactionId);
+```
+
+## Get all transactions
+
+Authentication is necessary to get all transactions.
+
+```ts copy
+const tranfer = await vault.BSAFEGetTransactions({
+  status: TransactionStatus.PENDING_SENDER
+});
+
+console.log(tranfer.BSAFEScript);
+console.log(tranfer.BSAFETransaction);
+console.log(tranfer.BSAFETransactionId);
 ```
 
 ## Send transaction
 
-After having all the necessary signatures, it is possible to execute your transaction using the `transfer.transaction.sendTransaction()` method,
-it will execute the transfer within the chain, going through all Vault validation and returning the result with the following response:
-
-| Prop    |              Description              |                  Value |
-|:--------|:-------------------------------------:|-----------------------:|
-| status  |         Status of transaction         | "success" or "failure" |
-| block   | Link of transaction in Block Explorer |                 string |
-| gasUsed |   Amount of gas used in transaction   |                 string |
-
-```ts
-const transfer = vault.includeTransaction([
-    {
-        amount: bn(1_000).format(),
-        assetId: 'ASSET_ID',
-        to: 'FUEL_ADDRESS'
-    }
-], []);
-
-// Set all signatures and check if all account signed
-
-const transactionResponse = await transfer.transaction.sendTransaction();
-
-console.log(transactionResponse)
+```ts copy
+const transfer = await vault.BSAFEGetTransaction(transactionId);
+await transfer.send()
 ```
 
-import {SendTransaction} from "../../components/transaction/send";
+## Wait
 
-<SendTransaction/>
+```ts copy
+const transfer = await vault.BSAFEGetTransaction(transactionId);
+await transfer.wait()
+```
+
+## Sign transfer
+
+To execute the transfers it is necessary to sign it, through the fuel wallet it is possible to sign the message with the
+transaction hash using the method `wallet.signMessage(transfer.transaction.getHashTxId())`.
+
+```ts
+const transfer = vault.BSAFEincludeTransaction();
+const wallet = await fuel.getWallet('FUEL CURRENT ACCOUNT');
+const signature = await wallet.signMessage(transfer.transaction.getHashTxId());
+
+transfer.witnesses = [signature];
+```

@@ -15,11 +15,17 @@ Enable create and manage your vault inner BSafe.
 BSafe allows create a vault in our ecosystem, is same in standalone, but you provide the **auth** property.
 
 ```tsx copy
-import {Vault, AuthService} from "bsafe";
+import {AuthService, Vault} from "bsafe";
 import {Provider} from "@fuel-ts/providers";
 
-const auth = await AuthService.create();
+const wallet = await fuel.getWallet('ADDRESS');
 const provider = await Provider.create('PROVIDER_URL');
+
+/* Authentication in BSafe */
+const authService = await AuthService.create('ADDRESS', provider.url);
+await authService.signerByAccount(wallet);
+const auth = await authService.createSession();
+
 const vaultPayload = {
     configurable: {
       network: provider.url,
@@ -41,6 +47,25 @@ After your vault created in ecosystem, you can get this properties in vault inst
 - **BSAFEVaultId**: Identifier of vault in our ecosystem.
 - **BSAFEVault**: Data of vault in our ecosystem.
 
+## Get Vault
+
+```ts copy
+import {AuthService, Vault} from "bsafe";
+import {Provider} from "@fuel-ts/providers";
+
+const wallet = await fuel.getWallet('ADDRESS');
+const provider = await Provider.create('PROVIDER_URL');
+
+/* Authentication in BSafe */
+const authService = await AuthService.create('ADDRESS', provider.url);
+await authService.signerByAccount(wallet);
+const auth = await authService.createSession();
+
+// By bsafe id
+const vault = await Vault.create('VAULT_ID');
+console.log(vault.BSAFEVaultId);
+
+```
 
 ## Next step
 
@@ -49,68 +74,3 @@ Now with your Vault created in our ecosystem you can interact with it, follow th
 <Cards num={1}>
     <Card arrow title="Vault methods" href="/quick-start/vault/methods" />
 </Cards>
-
-
-
-## Address
-When instantiating your Vault, it is possible to get the address of
-your Vault with the following property `vault.address`
-
-```tsx copy
-import {Vault} from "bsafe";
-
-const vault = new Vault({
-    configurable: {
-        network: 'FUEL_NETWORK',
-        SIGNATURES_COUNT: 1,
-        SIGNERS: ['FUEL_ACCOUNT_ADDRESS'],
-        HASH_PREDUCATE: undefined,
-    }
-});
-
-console.log(vault.address); // fuel1123klajsdh....
-```
-
-## Balance
-With your Vault instance, you can search for the balance in ETH with the following method `vault.getBalance()`
-this method will return a [BN](https://github.com/indutny/bn.js/), to convert in string execute `balance.format()`
-
-```tsx copy
-import {Vault} from "bsafe";
-
-const vault = new Vault({
-    configurable: {
-        network: 'FUEL_NETWORK',
-        SIGNATURES_COUNT: 1,
-        SIGNERS: ['FUEL_ACCOUNT_ADDRESS'],
-        HASH_PREDUCATE: undefined,
-    }
-});
-
-const balance = await vault.getBalance();
-
-console.log(balance.format()); // Result: 0.0000000
-```
-
-## Assets
-To search for all Assets in your predicate, run the `vault.getBalances()` method.
-This method will return a list of CoinQuantities with the following properties:
-- amount: value of your Asset in BN
-- assetId: identifier of your asset "0x000...."
-
-```tsx copy
-import {Vault} from "bsafe";
-
-const vault = new Vault({
-    configurable: {
-        network: 'FUEL_NETWORK',
-        SIGNATURES_COUNT: 1,
-        SIGNERS: ['FUEL_ACCOUNT_ADDRESS'],
-        HASH_PREDUCATE: undefined,
-    }
-});
-
-const assets = await vault.getBalances();
-
-console.log(assets); // CoinQuantity[]
-```
