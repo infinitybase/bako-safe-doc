@@ -1,11 +1,17 @@
+export function IsAuthenticaded({children}) {
+    return <div style={{ color: '#eed755', backgroundColor: 'rgba(234,211,116,0.56)', fontSize: 12, padding: '0 5px', display: 'inline' }}>Auth required</div>
+}
+
 # Transaction
 
-After creating your Vault instance and sending balance to it, you can interact with it by creating transactions and sending them to Fuel accounts.
+Once you've set up your Vault and transferred funds to it, you can handle transactions, including creating them, transferring assets,
+signing the transactions, and then waiting for the signatures before they can be dispatched to the chain.
 
 ## Create
 
-To create an instance of a transfer, you need your Vault instance, execute the `vault.BSAFEIncludeTransaction()`
-method passing `ITransferAsset[]` in `asset` prop with the following properties:
+To instantiate a transfer, a Vault instance is required. This is followed by the execution of the
+`vault.BSAFEIncludeTransaction()` method. This method takes as input an `ITransferAsset[]` array passed to the `asset` property,
+encapsulating the following properties:
 
 | Prop    |            Description             |  Value |      Example |
 |:--------|:----------------------------------:|-------:|-------------:|
@@ -27,11 +33,21 @@ const tranfer = await vault.BSAFEIncludeTransaction({
     }],
     witnesses: [], // Not required
 });
-
-console.log(tranfer);
 ```
 
-If the vault is authenticated, it is possible to access the information stored in it.
+A transaction can also be created using a `TransactionRequestLike`:
+
+```ts copy
+import { ScriptTransactionRequest } from "@fuel-ts/providers";
+
+// Example executing a Script Transaction
+const transactionRequest = ScriptTransactionRequest.from({});
+
+const vault = await Vault.create();
+const tranfer = await vault.BSAFEIncludeTransaction(transactionRequest);
+```
+
+or an authenticated Vault instance, the BSafe information can be retrieved using these properties:
 
 ```ts copy
 console.log(tranfer.BSAFEScript);
@@ -72,6 +88,8 @@ await transfer.send()
 
 ## Wait
 
+Upon authentication, you can wait for transaction confirmation with BSafe:
+
 ```ts copy
 const transfer = await vault.BSAFEGetTransaction(transactionId);
 await transfer.wait()
@@ -87,5 +105,5 @@ const transfer = vault.BSAFEincludeTransaction();
 const wallet = await fuel.getWallet('FUEL CURRENT ACCOUNT');
 const signature = await wallet.signMessage(transfer.transaction.getHashTxId());
 
-transfer.witnesses = [signature];
+transfer.sign(signature)
 ```
