@@ -1,11 +1,7 @@
-import {Callout} from "nextra/components";
-import { Cards, Card } from 'nextra/components';
-
 # Vault methods
 
 ## Address
-When instantiating your Vault, it is possible to get the address of
-your Vault with the following property `vault.address`
+To retrieve the address of your Vault, use the `vault.address` property after creating an instance of your Vault.
 
 ```tsx copy
 import {Vault} from "bsafe";
@@ -28,10 +24,10 @@ console.log(balance.format()); // Result: 0.0000000
 ```
 
 ## Assets
-To search for all Assets in your predicate, run the `vault.getBalances()` method.
-This method will return a list of CoinQuantities with the following properties:
-- amount: value of your Asset in BN
-- assetId: identifier of your asset "0x000...."
+To retrieve all Assets in your predicate, use the `vault.getBalances()` function. This will return a list of
+CoinQuantities, each with two properties:
+- `amount`: The value of your Asset in BN (BigNumber)
+- `assetId`: The identifier of your asset "0x000...."
 
 ```tsx copy
 import {Vault} from "bsafe";

@@ -3,12 +3,12 @@ import { Cards, Card } from 'nextra/components';
 
 # Standalone
 
-Allows you to manage your vault
+The Standalone mode gives you the freedom to administer your vault independently.
 
 ## Create vault
 To create a Vault instance you need to set the Configurable with the following parameters:
 
-- **configurable.network**: url of Fuel Network, in this versions is working with (beta-4)
+- **configurable.network**: url of Fuel Network.
 - **configurable.SIGNATURES_COUNT**: length of required signatures
 - **configurable.SIGNERS**: all addresses included in the Vault
 - **configurable.chainId**: id of the chain of your provider
@@ -34,13 +34,14 @@ await Vault.create(vaultPayload)
 ```
 
 <Callout type="info">
-    In this example enables to create a vault with 2 signers but 1 signature is required to approve the transaction.
-    If more required signers you can change the prop **configurable.SIGNATURES_COUNT** for max of signers.
+    This example illustrates the creation of a vault with 2 signers, where only 1 signature is required to approve the
+    transaction. If more signers are needed, you can adjust the prop **configurable.SIGNATURES_COUNT** accordingly.
 </Callout>
 
 ## Instance vault by payload
 
-It's possible get an instance of you vault by your payload used in creation of vault setting the same value in used in configurable.
+You can retrieve an instance of your Vault using the payload employed during the vault creation.
+Just set the same value in the configurable.
 
 ```tsx copy
 import {Vault} from "bsafe";
@@ -70,5 +71,5 @@ const sameVaultInstance = await Vault.create(vaultPayload);
 Now with your Vault created and its instance you can interact with it, follow the link to check all available method's.
 
 <Cards num={1}>
-    <Card arrow title="Vault methods" href="/quick-start/vault/methods" />
+    <Card arrow title="Vault methods" href="./methods" />
 </Cards>

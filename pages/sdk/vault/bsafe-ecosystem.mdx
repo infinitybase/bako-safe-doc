@@ -3,16 +3,17 @@ import { Cards, Card } from 'nextra/components';
 
 # BSafe ecosystem
 
-Enable create and manage your vault inner BSafe.
+This feature allows you to create and manage your Vault within the BSafe.
 
 <Callout type="warning">
-    Authentication is required to integrate with BSafe ecosystem, we provide a method for start a session.
-    [Read the docs](https://github.com/indutny/bn.js/)
+    Please note that authentication is mandatory to integrate with the BSafe Ecosystem. We've provided a method to
+    initiate a session. Explore more in our [Authentication Documentation](../authentication).
 </Callout>
 
 ## Create
 
-BSafe allows create a vault in our ecosystem, is same in standalone, but you provide the **auth** property.
+The process of creating a Vault within the BSafe Ecosystem is similar to the standalone method, but you need to
+provide the **BSAFEAuth** property in this case.
 
 ```tsx copy
 import {AuthService, Vault} from "bsafe";
@@ -35,7 +36,7 @@ const vaultPayload = {
       HASH_PREDICATE: [1, 2],
     },
     provider: provider,
-    auth,
+    BSAFEAuth: auth,
 }
 
 // Create vault
@@ -43,9 +44,9 @@ const vault = await Vault.create(vaultPayload);
 console.log(vault.BSAFEVaultId);
 ```
 
-After your vault created in ecosystem, you can get this properties in vault instance:
-- **BSAFEVaultId**: Identifier of vault in our ecosystem.
-- **BSAFEVault**: Data of vault in our ecosystem.
+Upon successful creation of your Vault within the Ecosystem, you can access the following properties in the Vault instance:
+- **BSAFEVaultId**: An identifier for the Vault in our Ecosystem
+- **BSAFEVault**: Data related to the Vault in our Ecosystem
 
 ## Get Vault
 
@@ -72,5 +73,5 @@ console.log(vault.BSAFEVaultId);
 Now with your Vault created in our ecosystem you can interact with it, follow the link to check all available method's.
 
 <Cards num={1}>
-    <Card arrow title="Vault methods" href="/quick-start/vault/methods" />
+    <Card arrow title="Vault methods" href="./methods" />
 </Cards>

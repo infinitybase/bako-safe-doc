@@ -1,0 +1,52 @@
+# Authentication
+
+```ts
+import { AuthService } from "bsafe";
+```
+
+BSafe provides an SDK to manage all the logic of a Multisig Wallet. This can be used in two different
+ways: `Standalone` or as part of the `BSafe Ecosystem`.
+
+To utilize the `BSafe Ecosystem`, authentication is required. With authentication, it's possible to use several methods, such as:
+- Waiting for all signatures of a transaction before sending it
+- Creating a Vault and managing it through our [app](https://app.bsafe.pro/)
+- Using our [app](https://app.bsafe.pro/) to manage transactions
+- Creating your Vaults and using them in other applications through our Wallet Connector
+
+## Authentication via a Fuel Wallet
+In order to authenticate using a Fuel Wallet, follow these steps:
+
+```ts
+const authService = await AuthService.create('ADDRESS', provider.url);
+await authService.signerByAccount(wallet);
+```
+
+In this code snippet, `AuthService.create` method is used to create a new instance of the AuthService.
+It requires the wallet address (`'ADDRESS'`) and the Provider URL (`provider.url`).
+The `signerByAccount` method signs in using the provided wallet for the authentication process.
+
+## Authentication via a Private Key
+You can also authenticate by using a Private Key as follows:
+```ts
+const authService = await AuthService.create('ADDRESS', provider.url);
+await authService.signerByPk('ACCOUNT_PK');
+```
+
+In this example, `AuthService.create` launches a new instance of the AuthService requiring the
+wallet address (`'ADDRESS'`) and the provider URL (`provider.url`).
+
+Then, the `signerByPk` method is used to sign in using the provided Private Key for the
+authentication process.
+
+## Signing a Transaction
+You can sign a transaction using the following method:
+```ts
+const authService = await AuthService.create('ADDRESS', provider.url);
+await authService.signTransaction(wallet, BSAFETransactionID);
+```
+
+In this code snippet, `AuthService.create` is used to establish a new instance of the AuthService.
+It takes in the wallet address (`'ADDRESS'`) and the provider URL (`provider.url`).
+
+Then, the `signTransaction` method is used for signing a transaction using the given wallet and transaction ID
+(`'BSAFETransactionID'`).
