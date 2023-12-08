@@ -19,6 +19,7 @@ In order to authenticate using a Fuel Wallet, follow these steps:
 ```ts
 const authService = await AuthService.create('ADDRESS', provider.url);
 await authService.signerByAccount(wallet);
+await authService.createSession();
 ```
 
 In this code snippet, `AuthService.create` method is used to create a new instance of the AuthService.
@@ -30,6 +31,7 @@ You can also authenticate by using a Private Key as follows:
 ```ts
 const authService = await AuthService.create('ADDRESS', provider.url);
 await authService.signerByPk('ACCOUNT_PK');
+await authService.createSession();
 ```
 
 In this example, `AuthService.create` launches a new instance of the AuthService requiring the
@@ -43,6 +45,7 @@ You can sign a transaction using the following method:
 ```ts
 const authService = await AuthService.create('ADDRESS', provider.url);
 await authService.signTransaction(wallet, BSAFETransactionID);
+await authService.createSession();
 ```
 
 In this code snippet, `AuthService.create` is used to establish a new instance of the AuthService.
