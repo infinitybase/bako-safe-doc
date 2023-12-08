@@ -5,6 +5,10 @@ import favicon from './assets/favicon.ico'
 import Image from "next/image";
 
 const config: DocsThemeConfig = {
+    primaryHue: {
+        dark: 160,
+        light: 162,
+    },
     head: (
         <>
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />

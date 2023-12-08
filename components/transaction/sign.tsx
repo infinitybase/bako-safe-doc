@@ -3,7 +3,6 @@ import {useEffect} from "react";
 import {Example} from "../example";
 import {IsConnected} from "../fuel/IsConnected";
 import {useTransaction} from "../../hooks/useTransaction";
-import {bn} from "fuels";
 
 const SignTransaction = () => {
     const {create, vault, balance, hasBalance, sendBalance, findBalance} = useVault();
@@ -30,7 +29,7 @@ const SignTransaction = () => {
                     <>
                         Signatures:{' '}
                         <Example.Text as="b">
-                            {transactionInstance?.transaction.witnesses[0]}
+                            {transactionInstance?.BSAFETransaction?.witnesses?.[0]}
                         </Example.Text>
                     </>
                 )}

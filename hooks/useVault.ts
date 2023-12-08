@@ -15,15 +15,19 @@ const useVault = () => {
         return bn(bn.parseUnits(balance)).gt(bn.parseUnits('0.000000001'));
     }, [balance]);
 
-    const create = () => {
-        const vaultInstance = new Vault({
+    const create = async () => {
+        const provider = await fuel.getProvider();
+        const vaultInstance = await Vault.create({
+            name: 'Vault by doc',
+            description: 'Vault created in doc',
+            provider: provider,
             configurable: {
-                network: 'https://beta-3.fuel.network/graphql',
+                chainId: provider.getChainId(),
+                network: provider.url,
                 SIGNATURES_COUNT: 1,
                 SIGNERS: ['fuel1ztr6nkwh5ld5emlzduwf8djt3xl8yydvape5d3jznj4q8w7ex26sy54nfh'],
-                HASH_PREDUCATE: undefined,
-            }
-        })
+            },
+        });
 
         setVault(vaultInstance);
     }
@@ -50,7 +54,6 @@ const useVault = () => {
 
     const findAssets = async () => {
         const assets = await vault.getBalances();
-        console.log(assets);
         setAssets(assets);
     }
 

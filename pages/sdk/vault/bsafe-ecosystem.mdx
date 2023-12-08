@@ -1,0 +1,77 @@
+import {Callout} from "nextra/components";
+import { Cards, Card } from 'nextra/components';
+
+# BSafe ecosystem
+
+This feature allows you to create and manage your Vault within the BSafe.
+
+<Callout type="warning">
+    Please note that authentication is mandatory to integrate with the BSafe Ecosystem. We've provided a method to
+    initiate a session. Explore more in our [Authentication Documentation](../authentication).
+</Callout>
+
+## Create
+
+The process of creating a Vault within the BSafe Ecosystem is similar to the standalone method, but you need to
+provide the **BSAFEAuth** property in this case.
+
+```tsx copy
+import {AuthService, Vault} from "bsafe";
+import {Provider} from "@fuel-ts/providers";
+
+const wallet = await fuel.getWallet('ADDRESS');
+const provider = await Provider.create('PROVIDER_URL');
+
+/* Authentication in BSafe */
+const authService = await AuthService.create('ADDRESS', provider.url);
+await authService.signerByAccount(wallet);
+const auth = await authService.createSession();
+
+const vaultPayload = {
+    configurable: {
+      network: provider.url,
+      chainId: provider.getChainId(),
+      SIGNERS: ['ADDRESS_1', 'ADDRESS_2'],
+      SIGNATURES_COUNT: 1,
+      HASH_PREDICATE: [1, 2],
+    },
+    provider: provider,
+    BSAFEAuth: auth,
+}
+
+// Create vault
+const vault = await Vault.create(vaultPayload);
+console.log(vault.BSAFEVaultId);
+```
+
+Upon successful creation of your Vault within the Ecosystem, you can access the following properties in the Vault instance:
+- **BSAFEVaultId**: An identifier for the Vault in our Ecosystem
+- **BSAFEVault**: Data related to the Vault in our Ecosystem
+
+## Get Vault
+
+```ts copy
+import {AuthService, Vault} from "bsafe";
+import {Provider} from "@fuel-ts/providers";
+
+const wallet = await fuel.getWallet('ADDRESS');
+const provider = await Provider.create('PROVIDER_URL');
+
+/* Authentication in BSafe */
+const authService = await AuthService.create('ADDRESS', provider.url);
+await authService.signerByAccount(wallet);
+const auth = await authService.createSession();
+
+// By bsafe id
+const vault = await Vault.create('VAULT_ID');
+console.log(vault.BSAFEVaultId);
+
+```
+
+## Next step
+
+Now with your Vault created in our ecosystem you can interact with it, follow the link to check all available method's.
+
+<Cards num={1}>
+    <Card arrow title="Vault methods" href="./methods" />
+</Cards>
