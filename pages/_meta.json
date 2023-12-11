@@ -1,7 +1,9 @@
 {
   "index": "Introduction",
-  "how-it-works": "How it works?",
   "sdk": {
     "title": "SDK"
+  },
+  "connector": {
+    "title": "Connector"
   }
 }
