@@ -1,6 +1,6 @@
 import React from 'react'
 import {DocsThemeConfig} from 'nextra-theme-docs'
-import logo from './assets/logo.png'
+import logo from './assets/bakoLogoWhite.svg'
 import favicon from './assets/favicon.ico'
 import Image from "next/image";
 
