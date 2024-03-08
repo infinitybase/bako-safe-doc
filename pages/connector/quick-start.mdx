@@ -1,10 +1,10 @@
-## Building a DApp to interact with the BSAFE connector
+## Building a DApp to interact with the Bako Safe connector
 
 You can check this same [project](https://github.com/infinitybase/bsafe-dapp). <br/>
-To create a dApp that interacts with BSAFE, you'll need beforehand:
+To create a dApp that interacts with Bako Safe, you'll need beforehand:
 
 - **[Fuel wallet](https://chromewebstore.google.com/detail/fuel-wallet/dldjpboieedgcmpkchcjcbijingjcgok) installed in your browser**
-- **An account and a vault created in the [BSAFE](https://app.bsafe.pro/)**
+- **An account and a vault created in the [Bako Safe](https://app.bsafe.pro/)**
 
 ### 1. Cloning the project and installing dependencies
 
@@ -17,7 +17,7 @@ We'll be using a React template with TypeScript and Chakra UI. Simply clone the 
 Now we'll install the necessary dependencies to run the project, including:
 
 - @fuels: the fuels SDK for TypeScript
-- @bsafe: the BSAFE SDK for interacting with resources
+- @bsafe: the Bako Safe SDK for interacting with resources
 - @fuel-wallet/react: the fuels wallet for React
 
 ```bash
@@ -27,7 +27,7 @@ Now we'll install the necessary dependencies to run the project, including:
 
 ### 2. Understanding our project
 
-In the file `src/App.tsx` We add the Fuels provider with BSAFE connector.
+In the file `src/App.tsx` We add the Fuels provider with Bako Safe connector.
 
 ```tsx
 import React from "react";
@@ -45,8 +45,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <FuelProvider
       theme={"dark"}
       fuelConfig={{
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        connectors: [bsafe as any], // todo: remove this with update on version @fuel-wallet/react
+        connectors: [bsafe],
         storage: null,
       }}
     >
@@ -72,7 +71,7 @@ Besides the hooks from the example, there are several more useful ones you can c
 
 ### 3. Creating a Transaction
 
-When the user connects to the fuel wallet, they choose a predicate previously created in the BSAFE app,
+When the user connects to the fuel wallet, they choose a predicate previously created in the Bako Safe app,
 and from there, the user can create transactions for that predicate and send them:
 
 ```tsx
@@ -101,13 +100,13 @@ async function handleTransfer() {
 }
 ```
 
-When sending the transaction, it isn't immediately broadcasted to the network. Instead, it's sent to the BSAFE servers and waits for the vault subscribers who generated the transaction to sign it. Once all signature requirements are met, the transaction is broadcasted to the network.
+When sending the transaction, it isn't immediately broadcasted to the network. Instead, it's sent to the Bako Safe servers and waits for the vault subscribers who generated the transaction to sign it. Once all signature requirements are met, the transaction is broadcasted to the network.
 
 ### 4. Calling a Contract
 
 The contract call works similarly to a transaction; we simply use the vault again as a wallet and, having access to the contract's ABI generated earlier, we can call the contract's methods:
 
-Initially, let's create a simple contract to interact with BSAFE. To do this, create a folder called `sway`, Inside it, create a file `src/main.sw`:
+Initially, let's create a simple contract to interact with Bako Safe. To do this, create a folder called `sway`, Inside it, create a file `src/main.sw`:
 
 ```sw
 contract;
@@ -164,7 +163,7 @@ Add a file to the root of the project named `fuels.config.ts` To set up the cont
 import { createConfig } from "fuels";
 
 export default createConfig({
-  providerUrl: "https://beta-4.fuel.network/graphql",
+  providerUrl: "https://beta-5.fuel.network/graphql",
   output: "./src/contracts/",
   contracts: ["./sway"],
   privateKey: <YOUR_PK />,
@@ -210,4 +209,4 @@ async function handleContractCall() {
 }
 ```
 
-In the BSAFE app, the vault subscribers will also receive a notification, requesting their signature.
+In the Bako Safe app, the vault subscribers will also receive a notification, requesting their signature.

@@ -1,18 +1,18 @@
 import {Callout} from "nextra/components";
 import { Cards, Card } from 'nextra/components';
 
-# BSafe ecosystem
+# Bako Safe ecosystem
 
-This feature allows you to create and manage your Vault within the BSafe.
+This feature allows you to create and manage your Vault within the Bako Safe.
 
 <Callout type="warning">
-    Please note that authentication is mandatory to integrate with the BSafe Ecosystem. We've provided a method to
+    Please note that authentication is mandatory to integrate with the Bako Safe Ecosystem. We've provided a method to
     initiate a session. Explore more in our [Authentication Documentation](../authentication).
 </Callout>
 
 ## Create
 
-The process of creating a Vault within the BSafe Ecosystem is similar to the standalone method, but you need to
+The process of creating a Vault within the Bako Safe Ecosystem is similar to the standalone method, but you need to
 provide the **BSAFEAuth** property in this case.
 
 ```tsx copy
@@ -57,12 +57,12 @@ import {Provider} from "@fuel-ts/providers";
 const wallet = await fuel.getWallet('ADDRESS');
 const provider = await Provider.create('PROVIDER_URL');
 
-/* Authentication in BSafe */
+/* Authentication in Bako Safe */
 const authService = await AuthService.create('ADDRESS', provider.url);
 await authService.signerByAccount(wallet);
 const auth = await authService.createSession();
 
-// By bsafe id
+// By Bako Safe id
 const vault = await Vault.create('VAULT_ID');
 console.log(vault.BSAFEVaultId);
 

@@ -1,7 +1,7 @@
 {
   "name": "bsafe-sdk-doc",
   "version": "0.0.1",
-  "description": "BSAFE SDK doc",
+  "description": "Bako Safe SDK doc",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

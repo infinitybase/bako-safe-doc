@@ -1,4 +1,4 @@
-# BSAFE(SDK) Documentation
+# Bako Safe(SDK) Documentation
 
 ## License
 
