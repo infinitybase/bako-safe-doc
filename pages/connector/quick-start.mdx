@@ -80,7 +80,7 @@ async function handleTransfer() {
   const amount = bn.parseUnits(amountInput) ?? bn(1_000);
 
   const provider = await FuelWalletProvider.create(
-    defaultConfigurable["provider"]
+    BSafe.get('PROVIDER')
   );
 
   const wallet = await fuel.getWallet(account, provider);
@@ -90,8 +90,8 @@ async function handleTransfer() {
     amount,
     BaseAssetId,
     {
-      gasPrice: defaultConfigurable["gasPrice"],
-      gasLimit: defaultConfigurable["gasLimit"],
+      gasPrice: BSafe.get('GAS_PRICE'),
+      gasLimit: BSafe.get('GAS_LIMIT'),
     }
   );
 
@@ -191,7 +191,7 @@ import contractIds from "./contracts/contract-ids.json";
 async function handleContractCall() {
   if (!account) return;
   const provider = await FuelWalletProvider.create(
-    defaultConfigurable["provider"]
+    BSafe.get('PROVIDER')
   );
   const wallet = await fuel.getWallet(account, provider);
   const contract = MyContractAbi__factory.connect(
@@ -202,8 +202,8 @@ async function handleContractCall() {
   const { value, transactionId } = await contract.functions
     .return_true(10)
     .txParams({
-      gasPrice: bn(1),
-      gasLimit: bn(1_000_000),
+      gasPrice: bn(BSafe.get('GAS_PRICE')),
+      gasLimit: bn(BSafe.get('GAS_LIMIT')),
     })
     .call();
 }
