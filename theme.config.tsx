@@ -21,7 +21,7 @@ const config: DocsThemeConfig = {
         <Image src={logo} width={90} alt="Bako Safe logo"/>
     ),
     project: {
-        link: 'https://github.com/infinitybase/bsafe',
+        link: 'https://github.com/infinitybase/bako-safe',
     },
     chat: {
         link: 'https://discord.gg/gSXeZkF2',
@@ -31,7 +31,7 @@ const config: DocsThemeConfig = {
     },
     useNextSeoProps() {
         return {
-            titleTemplate: 'Bako Safe SDK - %s'
+            titleTemplate: '%s | Bako Safe'
         }
     },
     feedback: {
