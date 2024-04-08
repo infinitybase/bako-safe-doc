@@ -11,10 +11,12 @@ ways: `Standalone` or as part of the `Bako Safe Ecosystem`.
 <Image src="/images/BAKO_SDK_FLUXOGRAM.png" alt="BSafe sdk ecossystem" width={930} height={500} />
 
 To utilize the `Bako Safe Ecosystem`, authentication is required. With authentication, it's possible to use several methods, such as:
+- To continue, you need a [Fuel wallet](https://chromewebstore.google.com/detail/fuel-wallet/dldjpboieedgcmpkchcjcbijingjcgok) extension installed on your browser
 - Waiting for all signatures of a transaction before sending it
 - Creating a Vault and managing it through our [app](https://safe.bako.global/)
 - Using our [app](https://safe.bako.global/) to manage transactions
 - Creating your Vaults and using them in other applications through our Wallet Connector
+
 
 ## Authentication by Fuel Wallet
 In order to authenticate using a Fuel Wallet, follow these steps:
@@ -30,7 +32,8 @@ const params: IAuthCreateRequest = {
 
 const auth = await Auth.create(params);
 //sign auth code using your fuel wallet, to create your session
-await auth.signerByAccount(wallet);
+const wallet_sign = <YOUR_SIGNATURE_BY_FUEL_WALLET/>
+await auth.sign(wallet_sign);
 
 //use your BakoSafeAuth on Auth to instance other services on BakoSafe
 console.log(auth.BakoSafeAuth);
@@ -59,7 +62,7 @@ const auth = await Auth.create(params);
 
 //sign auth code using your PK
 const sig = await Auth.signerByPk(YOUR_PRIVATE_KEY, auth.code);
-await auth.signerByAccount(sig);
+await auth.sign(sig);
 
 //use your BakoSafeAuth on Auth to instance other services on BakoSafe
 console.log(auth.BakoSafeAuth);
