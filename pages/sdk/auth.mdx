@@ -24,7 +24,7 @@ import { Auth, TypeUser, IAuthCreateRequest, BakoSafe } from "bakosafe"
 
 const params: IAuthCreateRequest = {
     address: <YOUR_FUEL_WALLET_ADDRESS/>, // fuels..dsai
-    provider: BakoSafe.get('PROVIDER'), // https://beta-5.fuel.network/graphql for example
+    provider: BakoSafe.getProviders('PROVIDER'), // https://beta-5.fuel.network/graphql for example
     type: TypeUser.FUEL, // TypeUser.FUEL
 };
 
@@ -52,7 +52,7 @@ const YOUR_ADDRESS = <YOUR_ADDRESS>;
 
 const params: IAuthCreateRequest = {
     address: YOUR_ADDRESS, // fuels..dsai
-    provider: BakoSafe.get('PROVIDER'), // https://beta-5.fuel.network/graphql for example
+    provider: BakoSafe.getProviders('PROVIDER'), // https://beta-5.fuel.network/graphql for example
     type: TypeUser.FUEL, // TypeUser.FUEL
 };
 const auth = await Auth.create(params);

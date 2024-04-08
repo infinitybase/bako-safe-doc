@@ -19,3 +19,74 @@ Bako Safe offers two ways of managing a Vault: **Standalone** and by using the *
 
 ## Standalone
 
+```ts
+import { IPayloadVault, Vault, BakoSafe } from "bakosafe"
+import { Address } from 'fuels'
+
+const params: IPayloadVault = {
+    name: "My First Vault",
+    description: "This is my first example of a Vault",
+    configurable: {
+        SIGNATURES_COUNT: 1,
+        SIGNERS: [
+            Address.fromRandom().toString(),
+            Address.fromRandom().toString(),
+        ],
+        network: BakoSafe.getProviders('CHAIN_URL')
+    }
+}
+
+const vault = await Vault.create(VaultPayload);
+
+console.log(vault.address.toString());
+
+```
+
+
+## Bako Safe Ecosystem
+
+```ts
+import { 
+    IPayloadVault, 
+    Vault, 
+    BakoSafe, 
+    Auth, 
+    TypeUser, 
+    IAuthCreateRequest
+} from "bakosafe"
+
+import { Address } from 'fuels'
+
+const YOUR_PRIVATE_KEY = <YOUR_PRIVATE_KEY>;
+const YOUR_ADDRESS = <YOUR_ADDRESS>;
+ 
+const params: IAuthCreateRequest = {
+    address: YOUR_ADDRESS, // fuels..dsai
+    provider: BakoSafe.getProviders('PROVIDER'), // https://beta-5.fuel.network/graphql for example
+    type: TypeUser.FUEL, // TypeUser.FUEL
+};
+const auth = await Auth.create(params);
+ 
+//sign auth code using your PK
+const sig = await Auth.signerByPk(YOUR_PRIVATE_KEY, auth.code);
+await auth.signerByAccount(sig);
+
+const params: IPayloadVault = {
+    name: "My First Vault",
+    description: "This is my first example of a Vault",
+    configurable: {
+        SIGNATURES_COUNT: 1,
+        SIGNERS: [
+            Address.fromRandom().toString(),
+            Address.fromRandom().toString(),
+        ],
+        network: BakoSafe.getProviders('CHAIN_URL')
+    }
+}
+
+const vault = await Vault.create(VaultPayload);
+
+console.log(vault.address.toString());
+```
+
+For more details on authentication, please refer to [this link](./auth).
