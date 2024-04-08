@@ -1,7 +1,7 @@
 import React from 'react'
 import {DocsThemeConfig} from 'nextra-theme-docs'
-import logo from './assets/bakoLogoWhite.svg'
-import favicon from './assets/favicon.ico'
+import logo from './assets/BAKO_CONNECTOR_ICON.svg'
+import favicon from './assets/BAKO_CONNECTOR_ICON.svg'
 import Image from "next/image";
 
 const config: DocsThemeConfig = {
@@ -18,7 +18,7 @@ const config: DocsThemeConfig = {
         </>
     ),
     logo: (
-        <Image src={logo} width={90} alt="Bako Safe logo"/>
+        <Image src={logo} width={40} alt="Bako Safe logo"/>
     ),
     project: {
         link: 'https://github.com/infinitybase/bako-safe',
