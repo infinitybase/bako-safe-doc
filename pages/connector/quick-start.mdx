@@ -1,10 +1,14 @@
 ## Building a DApp to interact with the Bako Safe connector
 
-You can check this same [project](https://github.com/infinitybase/bsafe-dapp). <br/>
+
+
+To create your dapp, you can use as a basis the code from the [example application](https://github.com/infinitybase/bsafe-dapp) that was previously presented.<br/>
+
+
 To create a dApp that interacts with Bako Safe, you'll need beforehand:
 
 - **[Fuel wallet](https://chromewebstore.google.com/detail/fuel-wallet/dldjpboieedgcmpkchcjcbijingjcgok) installed in your browser**
-- **An account and a vault created in the [Bako Safe](https://app.bsafe.pro/)**
+- **An account and a vault created in the [Bako Safe](https://safe.bako.global/)**
 
 ### 1. Cloning the project and installing dependencies
 
@@ -27,7 +31,7 @@ Now we'll install the necessary dependencies to run the project, including:
 
 ### 2. Understanding our project
 
-In the file `src/App.tsx` We add the Fuels provider with Bako Safe connector.
+In the file `src/App.tsx` we add the Fuels provider with Bako Safe connector.
 
 ```tsx
 import React from "react";
@@ -104,7 +108,7 @@ When sending the transaction, it isn't immediately broadcasted to the network. I
 
 ### 4. Calling a Contract
 
-The contract call works similarly to a transaction; we simply use the vault again as a wallet and, having access to the contract's ABI generated earlier, we can call the contract's methods:
+The contract call works similarly to a transaction we simply use the vault again as a wallet and, having access to the contract's ABI generated earlier, we can call the contract's methods:
 
 Initially, let's create a simple contract to interact with Bako Safe. To do this, create a folder called `sway`, Inside it, create a file `src/main.sw`:
 
@@ -157,7 +161,7 @@ name = "MyContract"
 
 ```
 
-Add a file to the root of the project named `fuels.config.ts` To set up the contract deployment on the network, use the following content:
+Add a file to the root of the project named `fuels.config.ts` to set up the contract deployment on the network, use the following content:
 
 ```tsx
 import { createConfig } from "fuels";
@@ -210,3 +214,4 @@ async function handleContractCall() {
 ```
 
 In the Bako Safe app, the vault subscribers will also receive a notification, requesting their signature.
+Now you have your application connected, and if you have any questions, please feel free to contact us through our [community](https://discord.gg/E5kYKSKncj).

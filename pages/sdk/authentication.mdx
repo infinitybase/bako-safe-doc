@@ -1,55 +1,68 @@
 # Authentication
 
-```ts
-import { AuthService } from "bsafe";
-```
-
 Bako Safe provides an SDK to manage all the logic of a Multisig Wallet. This can be used in two different
 ways: `Standalone` or as part of the `Bako Safe Ecosystem`.
 
 To utilize the `Bako Safe Ecosystem`, authentication is required. With authentication, it's possible to use several methods, such as:
 - Waiting for all signatures of a transaction before sending it
-- Creating a Vault and managing it through our [app](https://app.bsafe.pro/)
-- Using our [app](https://app.bsafe.pro/) to manage transactions
+- Creating a Vault and managing it through our [app](https://safe.bako.global/)
+- Using our [app](https://safe.bako.global/) to manage transactions
 - Creating your Vaults and using them in other applications through our Wallet Connector
 
-## Authentication via a Fuel Wallet
+## Authentication by Fuel Wallet
 In order to authenticate using a Fuel Wallet, follow these steps:
 
 ```ts
-const authService = await AuthService.create('ADDRESS', provider.url);
-await authService.signerByAccount(wallet);
-await authService.createSession();
+import { Auth, TypeUser, IAuthCreateRequest, BakoSafe } from "bakosafe"
+
+const params: IAuthCreateRequest = {
+    address: <YOUR_FUEL_WALLET_ADDRESS/>, // fuels..dsai
+    provider: BakoSafe.get('PROVIDER'), // https://beta-5.fuel.network/graphql for example
+    type: TypeUser.FUEL, // TypeUser.FUEL
+};
+
+const auth = await Auth.create(params);
+//sign auth code using your fuel wallet, to create your session
+await auth.signerByAccount(wallet);
+
+//use your BakoSafeAuth on Auth to instance other services on BakoSafe
+console.log(auth.BakoSafeAuth);
+
 ```
 
-In this code snippet, `AuthService.create` method is used to create a new instance of the AuthService.
-It requires the wallet address (`'ADDRESS'`) and the Provider URL (`provider.url`).
-The `signerByAccount` method signs in using the provided wallet for the authentication process.
+In this code snippet, `Auth.create` method is used to create a new instance of the Auth.
+It requires the wallet address (`fuels..dsai`) and the Provider URL (`https://beta-5.fuel.network/graphql`).
+You need to specify the type of user as `TypeUser.FUEL`.
+After this, sign your `Auth.code` using your Fuel Wallet, and send your signature using auth.signerByAccount() to create your session.
 
-## Authentication via a Private Key
+## Authentication vy Private Key
 You can also authenticate by using a Private Key as follows:
 ```ts
-const authService = await AuthService.create('ADDRESS', provider.url);
-await authService.signerByPk('ACCOUNT_PK');
-await authService.createSession();
+import { Auth, TypeUser, IAuthCreateRequest, BakoSafe } from "bakosafe"
+
+const YOUR_PRIVATE_KEY = <YOUR_PRIVATE_KEY>;
+const YOUR_ADDRESS = <YOUR_ADDRESS>;
+
+const params: IAuthCreateRequest = {
+    address: YOUR_ADDRESS, // fuels..dsai
+    provider: BakoSafe.get('PROVIDER'), // https://beta-5.fuel.network/graphql for example
+    type: TypeUser.FUEL, // TypeUser.FUEL
+};
+const auth = await Auth.create(params);
+
+//sign auth code using your PK
+const sig = await Auth.signerByPk(YOUR_PRIVATE_KEY, auth.code);
+await auth.signerByAccount(sig);
+
+//use your BakoSafeAuth on Auth to instance other services on BakoSafe
+console.log(auth.BakoSafeAuth);
 ```
 
-In this example, `AuthService.create` launches a new instance of the AuthService requiring the
-wallet address (`'ADDRESS'`) and the provider URL (`provider.url`).
+In this code snippet, `Auth.create` method is used to create a new instance of the Auth.
+It requires the wallet address (`YOUR_ADDRESS`), the Provider URL (`https://beta-5.fuel.network/graphql`) and the private key of account (`YOUR_PRIVATE_KEY`).
+You need to specify the type of user as `TypeUser.FUEL`.
 
 Then, the `signerByPk` method is used to sign in using the provided Private Key for the
 authentication process.
 
-## Signing a Transaction
-You can sign a transaction using the following method:
-```ts
-const authService = await AuthService.create('ADDRESS', provider.url);
-await authService.signTransaction(wallet, BSAFETransactionID);
-await authService.createSession();
-```
 
-In this code snippet, `AuthService.create` is used to establish a new instance of the AuthService.
-It takes in the wallet address (`'ADDRESS'`) and the provider URL (`provider.url`).
-
-Then, the `signTransaction` method is used for signing a transaction using the given wallet and transaction ID
-(`'BSAFETransactionID'`).
