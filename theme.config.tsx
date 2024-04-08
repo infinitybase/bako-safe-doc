@@ -24,7 +24,7 @@ const config: DocsThemeConfig = {
         link: 'https://github.com/infinitybase/bsafe',
     },
     chat: {
-        link: 'https://discord.gg/dbejzM7f',
+        link: 'https://discord.gg/gSXeZkF2',
     },
     footer: {
         text: 'Bako Safe',
