@@ -1,7 +1,14 @@
-# Authentication
+import Image from 'next/image';
+
+
+## Authentication
 
 Bako Safe provides an SDK to manage all the logic of a Multisig Wallet. This can be used in two different
 ways: `Standalone` or as part of the `Bako Safe Ecosystem`.
+
+
+<br />
+<Image src="/images/BAKO_SDK_FLUXOGRAM.png" alt="BSafe sdk ecossystem" width={930} height={500} />
 
 To utilize the `Bako Safe Ecosystem`, authentication is required. With authentication, it's possible to use several methods, such as:
 - Waiting for all signatures of a transaction before sending it
@@ -35,7 +42,7 @@ It requires the wallet address (`fuels..dsai`) and the Provider URL (`https://be
 You need to specify the type of user as `TypeUser.FUEL`.
 After this, sign your `Auth.code` using your Fuel Wallet, and send your signature using auth.signerByAccount() to create your session.
 
-## Authentication vy Private Key
+## Authentication by Private Key
 You can also authenticate by using a Private Key as follows:
 ```ts
 import { Auth, TypeUser, IAuthCreateRequest, BakoSafe } from "bakosafe"
