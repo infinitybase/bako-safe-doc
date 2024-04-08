@@ -7,7 +7,7 @@ import Image from "next/image";
 const config: DocsThemeConfig = {
     primaryHue: {
         dark: 50,
-        light: 162,
+        light: 50,
     },
     head: (
         <>
