@@ -1,9 +1,10 @@
 {
-  "index": "Introduction",
+  "index": "Intro",
+  "installation": "Installation",
   "sdk": {
     "title": "SDK"
   },
   "connector": {
-    "title": "Connector"
+    "title": "Bako Wallet Connector"
   }
 }
