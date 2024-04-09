@@ -1,0 +1,41 @@
+## Methods
+```ts
+interface IPayloadVault {
+  configurable: Omit<IConfVault, 'chainId'>;
+  name?: string; // name of your vault, default: vault_${hash}
+  description?: string; // description of your vault
+  transactionRecursiveTimeout?: number; // check status transaction interval, default: 1000ms
+  //Your ABI and bytecode is saved with us, if you created a vault on bako ecossistem format
+  //just remember the ID or address of the vault
+  abi?: string; // ABI of your predicate contract, default: last version of predicate
+  bytecode?: string;// binary of your predicate contract, default: last version of predicate
+  BakoSafeAuth?: IBakoSafeAuth; // to safe your vault info, this auth is required
+}
+
+interface IBakoSafeApi extends IBakoSafeAuth {
+  id?: string; // id of predicate on bako ecossistem
+  predicateAddress?: string; // address of predicate on bako ecossistem
+}
+
+interface IConfVault {
+  SIGNATURES_COUNT: number; // required number of signatures to send a transaction
+  SIGNERS: string[]; // the address of signers, on b256 format (fuel...uayp)
+  network: string; // network to create this predicate
+  chainId: number; // id of your netowork
+  HASH_PREDICATE?: string; // random string of your predicate, to make this unic
+}
+
+type IBakoSafeIncludeTransaction =
+  | IFormatTransfer
+  | TransactionRequestLike; // external type of fuel
+
+interface IBakoSafeGetTransactions {
+  resume: ITransactionResume;
+  witnesses: IWitnesses[];
+}
+```
+
+
+## External
+- [TransactionRequestLike](https://github.com/FuelLabs/fuels-ts/blob/master/packages/account/src/providers/transaction-request/types.ts)
+- [Provider](https://github.com/FuelLabs/fuels-ts/blob/master/packages/account/src/providers/provider.ts)

@@ -1,6 +1,7 @@
 {
-  "installation": "Installation",
   "auth": "Authentication",
   "vault": "Vault",
-  "transaction": "Transaction"
+  "transaction": "Transaction",
+  "setup": "Setup",
+  "reference": "Reference"
 }
