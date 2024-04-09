@@ -1,13 +1,13 @@
 import React from 'react'
 import {DocsThemeConfig} from 'nextra-theme-docs'
-import logo from './assets/bakoLogoWhite.svg'
-import favicon from './assets/favicon.ico'
+import logo from './assets/BAKO_CONNECTOR_ICON.svg'
+import favicon from './assets/BAKO_CONNECTOR_ICON.svg'
 import Image from "next/image";
 
 const config: DocsThemeConfig = {
     primaryHue: {
         dark: 50,
-        light: 162,
+        light: 50,
     },
     head: (
         <>
@@ -18,20 +18,20 @@ const config: DocsThemeConfig = {
         </>
     ),
     logo: (
-        <Image src={logo} width={90} alt="Bako Safe logo"/>
+        <Image src={logo} width={40} alt="Bako Safe logo"/>
     ),
     project: {
-        link: 'https://github.com/infinitybase/bsafe',
+        link: 'https://github.com/infinitybase/bako-safe',
     },
     chat: {
-        link: 'https://discord.gg/dbejzM7f',
+        link: 'https://discord.gg/gSXeZkF2',
     },
     footer: {
         text: 'Bako Safe',
     },
     useNextSeoProps() {
         return {
-            titleTemplate: 'Bako Safe SDK - %s'
+            titleTemplate: '%s | Bako Safe'
         }
     },
     feedback: {

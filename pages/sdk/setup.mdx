@@ -1,0 +1,60 @@
+## Setup
+
+To start using our package, you can simply import it and begin using it.
+Our SDK has some default values such as gas cost, gas limit, provider, which the abstractions we have within the SDK will use, and you can [refer](https://github.com/infinitybase/bako-safe/blob/master/packages/sdk/configurables.ts) to for these.
+However, it's possible to configure these values to meet the specifications of your dApp.
+
+
+## Usage setup values
+While using your dapp, you can query the default values for existing configurations through the SDK.
+<br/>
+
+```ts
+import { BakoSafe } from 'bakosafe';
+
+const bakoSafe = new BakoSafe();
+
+// get setup gas
+const gasConfig = {
+    gasLimit: bakoSafe.getGasConfig('GAS_LIMIT'),
+    gasPrice: bakoSafe.getGasConfig('GAS_PRICE'),
+}
+
+// get setup provider
+const providers = {
+    provider: bakoSafe.getProviders('CHAIN_URL'),
+    bako_api: bakoSafe.getProviders('SERVER_URL'),
+    bako_dapp: bakoSafe.getProviders('CLIENT_URL'),
+}
+
+```
+
+## Set values
+If you want to use your own providers or simply don't want to use Bako's default providers, you can set them when initializing the use of our SDK.
+<br/>
+If you want to implement your own API to store some data off-chain similar to how BakoSafe works in the ecosystem mode, 
+simply access this [link](https://github.com/infinitybase/bako-safe/blob/master/packages/sdk/src/api/index.ts) to better understand which endpoints you need to implement in your own API.
+And check the implementation interface of each service, on `module/types.ts`, for example: `predicates/types.ts`.
+
+<br/>
+
+```ts
+import { BakoSafe } from 'bakosafe';
+
+const bakoSafe = new BakoSafe();
+
+// setup gas
+bakoSafe.setGasConfig({ //on decimal values, on usage is converted to bn()
+    gasLimit: 1000000, 
+    gasPrice: 1,
+});
+
+
+// setup provider
+bakoSafe.setProviders({
+    provider: 'https://beta-5.fuel.network/graphql',
+    bako_api: 'https://api-safe.bako.global',
+    bako_dapp: 'https://safe.bako.global',
+})
+
+```

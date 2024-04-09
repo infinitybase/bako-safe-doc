@@ -1,5 +1,6 @@
 {
   "installation": "Installation",
+  "auth": "Authentication",
   "vault": "Vault",
   "transaction": "Transaction"
 }

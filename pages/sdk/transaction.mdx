@@ -1,109 +1,65 @@
-export function IsAuthenticaded({children}) {
-    return <div style={{ color: '#eed755', backgroundColor: 'rgba(234,211,116,0.56)', fontSize: 12, padding: '0 5px', display: 'inline' }}>Auth required</div>
-}
+## Transaction
 
-# Transaction
+Once you've set up your Vault and transferred funds to it, you can handle transactions, 
+including creating them, transferring assets, signing the transactions, 
+and then waiting for the signatures before they can be dispatched to the chain.
 
-Once you've set up your Vault and transferred funds to it, you can handle transactions, including creating them, transferring assets,
-signing the transactions, and then waiting for the signatures before they can be dispatched to the chain.
 
-## Create
+### Create a transaction
 
-To instantiate a transfer, a Vault instance is required. This is followed by the execution of the
-`vault.BSAFEIncludeTransaction()` method. This method takes as input an `ITransferAsset[]` array passed to the `asset` property,
-encapsulating the following properties:
-
-| Prop    |            Description             |  Value |      Example |
-|:--------|:----------------------------------:|-------:|-------------:|
-| amount  |  Quantity of asset in transaction  | string |       0.0001 |
-| assetId |            Id of asset             | string |   0x00000... |
-| to      | Address of you transfer this asset | string | fuel1flop... |
-
-```ts copy
-import {Vault} from "bsafe";
-
-const vault = await Vault.create();
-
-const tranfer = await vault.BSAFEIncludeTransaction({
-    name: 'Transaction One',
-    assets: [{
-        amount: bn(1_000).format(),
-        assetId: 'ASSET_ID',
-        to: 'FUEL_ADDRESS'
-    }],
-    witnesses: [], // Not required
-});
-```
-
-A transaction can also be created using a `TransactionRequestLike`:
-
-```ts copy
-import { ScriptTransactionRequest } from "@fuel-ts/providers";
-
-// Example executing a Script Transaction
-const transactionRequest = ScriptTransactionRequest.from({});
-
-const vault = await Vault.create();
-const tranfer = await vault.BSAFEIncludeTransaction(transactionRequest);
-```
-
-or an authenticated Vault instance, the BSafe information can be retrieved using these properties:
-
-```ts copy
-console.log(tranfer.BSAFEScript);
-console.log(tranfer.BSAFETransaction);
-console.log(tranfer.BSAFETransactionId);
-```
-
-## Get transaction
-
-Authentication is necessary to access a transaction by ID.
-
-```ts copy
-const tranfer = await vault.BSAFEGetTransaction(transactionId);
-
-console.log(tranfer.BSAFETransactionId);
-```
-
-## Get all transactions
-
-Authentication is necessary to get all transactions.
-
-```ts copy
-const tranfer = await vault.BSAFEGetTransactions({
-  status: TransactionStatus.PENDING_SENDER
-});
-
-console.log(tranfer.BSAFEScript);
-console.log(tranfer.BSAFETransaction);
-console.log(tranfer.BSAFETransactionId);
-```
-
-## Send transaction
-
-```ts copy
-const transfer = await vault.BSAFEGetTransaction(transactionId);
-await transfer.send()
-```
-
-## Wait
-
-Upon authentication, you can wait for transaction confirmation with BSafe:
-
-```ts copy
-const transfer = await vault.BSAFEGetTransaction(transactionId);
-await transfer.wait()
-```
-
-## Sign transfer
-
-To execute the transfers it is necessary to sign it, through the fuel wallet it is possible to sign the message with the
-transaction hash using the method `wallet.signMessage(transfer.transaction.getHashTxId())`.
+Send assets to your vault using [Fuels' faucet](https://faucet-beta-5.fuel.network/) 
+so that we can proceed with the implementation of a transaction.
+<br/>
+You can sign your transaction using a private key or using the [Fuel wallet](https://chromewebstore.google.com/detail/fuel-wallet/dldjpboieedgcmpkchcjcbijingjcgok) through the browser.
 
 ```ts
-const transfer = vault.BSAFEincludeTransaction();
-const wallet = await fuel.getWallet('FUEL CURRENT ACCOUNT');
-const signature = await wallet.signMessage(transfer.transaction.getHashTxId());
+import { Auth, TypeUser, IAuthCreateRequest, BakoSafe } from "bakosafe"
+import { NativeAssetId } from 'fuels'
 
-transfer.sign(signature)
+
+const YOUR_PRIVATE_KEY = <YOUR_PRIVATE_KEY>;
+const YOUR_ADDRESS = <YOUR_ADDRESS>;
+
+// create your vault implementation
+const params_vault: IPayloadVault = {
+    name: "My First Vault",
+    description: "This is my first example of a Vault",
+    configurable: {
+        SIGNATURES_COUNT: 1,
+        SIGNERS: [
+            YOUR_ADDRESS,
+            Address.fromRandom().toString(),
+        ],
+        network: BakoSafe.getProviders('CHAIN_URL')
+    }
+}
+
+const vault = Vault.create(params_vault);
+
+
+const params_tx: IFormatTransfer = {
+    name: 'My transaction example name',
+    assets: [
+        {
+            assetId: NativeAssetId,
+            amounte: '0.0019',
+            to: Address.random().toString()
+        }
+    ]
+}
+
+const tx = await vault.BakoSafeIncludeTransaction(params_tx);
+
+const signature = await Auth.signerByPk(YOUR_PRIVATE_KEY, tx.getHashTxId());
+
+tx.witnesses = [
+    signature
+]
+
+// Send transaction
+tx.send()
+const result = await tx.wait();
+
 ```
+
+You can check the result on the [Fuel block explorer](https://app.fuel.network/) by searching for the return of the `tx.getHashTxId()` method.
