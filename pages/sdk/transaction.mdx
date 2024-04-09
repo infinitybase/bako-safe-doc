@@ -21,7 +21,7 @@ const YOUR_PRIVATE_KEY = <YOUR_PRIVATE_KEY>;
 const YOUR_ADDRESS = <YOUR_ADDRESS>;
 
 // create your vault implementation
-const params: IPayloadVault = {
+const params_vault: IPayloadVault = {
     name: "My First Vault",
     description: "This is my first example of a Vault",
     configurable: {
@@ -33,11 +33,11 @@ const params: IPayloadVault = {
         network: BakoSafe.getProviders('CHAIN_URL')
     }
 }
-const vault = await Vault.create(VaultPayload);
+
+const vault = Vault.create(params_vault);
 
 
-const vault = Vault.create(params);
-const params: IFormatTransfer = {
+const params_tx: IFormatTransfer = {
     name: 'My transaction example name',
     assets: [
         {
@@ -48,7 +48,7 @@ const params: IFormatTransfer = {
     ]
 }
 
-const tx = await vault.BakoSafeIncludeTransaction(params);
+const tx = await vault.BakoSafeIncludeTransaction(params_tx);
 
 const signature = await Auth.signerByPk(YOUR_PRIVATE_KEY, tx.getHashTxId());
 
