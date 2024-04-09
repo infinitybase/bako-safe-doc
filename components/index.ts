@@ -1,1 +1,1 @@
-export * from './vault'
+export * from './table'

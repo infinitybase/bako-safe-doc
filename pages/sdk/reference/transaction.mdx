@@ -1,0 +1,85 @@
+## Methods
+```ts
+type TransferFactoryParam =
+  | string 
+  | IFormatTransfer 
+  | TransactionRequestLike 
+  | ITransaction;
+
+interface TransferFactory {
+  auth?: IBakoSafeAuth; // your auth
+  transfer: TransferFactoryParam;
+  vault: Vault; //vault instance
+  isSave?: boolean; // can you save this transaction?
+}
+
+interface IPayloadTransfer {
+  assets: ITransferAsset[];
+  witnesses?: string[];
+  name?: string;
+}
+
+interface IFormatTransfer {
+  name: string;
+  assets: ITransferAsset[];
+  witnesses?: string[];
+}
+
+type ITransferAsset = {
+  assetId: string;
+  amount: string;
+  to: string;
+};
+
+interface ITransactionResume {
+  hash: string; // hash of the transaction
+  BakoSafeID: string; // id of the transaction on bako ecossistem
+  totalSigners: number;
+  requiredSigners: number; 
+  predicate: {
+    id: string;
+    address: string;
+  };
+  outputs: ITransferAsset[]; 
+  status: TransactionStatus; 
+  witnesses?: string[]; // list of witnesses
+  gasUsed?: string; // cost of gas
+  sendTime?: Date; // time to send
+}
+
+interface IListTransactions {
+  to?: string;
+  hash?: string;
+  status?: TransactionStatus[];
+  perPage?: number;
+  page?: number;
+  orderBy?: string;
+  sort?: SortOption;
+}
+```
+
+## Enums
+```ts
+enum TransferInstanceError {
+  REQUIRED_AUTH = 'Required credentials',
+  INVALID_PARAMETER = 'Invalid instance parameters',
+}
+
+enum TransactionStatus {
+  AWAIT_REQUIREMENTS = 'await_requirements', // waiting for required signatures
+  PENDING_SENDER = 'pending_sender', // signatures completed, waiting for sender process
+  PROCESS_ON_CHAIN = 'process_on_chain', // on send process
+  SUCCESS = 'success', // finished with success
+  DECLINED = 'declined', // required subscriptions not obtained, this Tx will not be send
+  FAILED = 'failed', // I attempted to send, but there were problems
+}
+
+
+export enum SortOption {
+  ASC = 'ASC',
+  DESC = 'DESC',
+}
+```
+
+## External
+- [TransactionRequestLike](https://github.com/FuelLabs/fuels-ts/blob/master/packages/account/src/providers/transaction-request/types.ts)
