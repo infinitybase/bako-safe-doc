@@ -1,8 +1,6 @@
 ## Building a DApp to interact with the Bako Safe connector
 
-
-
-To create your dapp, you can use as a basis the code from the [example application](https://github.com/infinitybase/bsafe-dapp) that was previously presented.<br/>
+To create your dapp, you can use as a basis the code from the [example application](https://github.com/infinitybase/bako-safe-dapp) that was previously presented.<br/>
 
 
 To create a dApp that interacts with Bako Safe, you'll need beforehand:
@@ -15,17 +13,20 @@ To create a dApp that interacts with Bako Safe, you'll need beforehand:
 We'll be using a React template with TypeScript and Chakra UI. Simply clone the repository:
 
 ```bash
-    git clone https://github.com/infinitybase/bsafe-dapp.git
+    git clone https://github.com/infinitybase/bako-safe-dapp
 ```
 
 Now we'll install the necessary dependencies to run the project, including:
 
-- @fuels: the fuels SDK for TypeScript
-- @bsafe: the Bako Safe SDK for interacting with resources
-- @fuel-wallet/react: the fuels wallet for React
+- fuels@0.76.12: the fuels SDK for TypeScript
+- bako-safe@0.0.51: the Bako Safe SDK for interacting with resources
+- @fuel-wallet/react@0.15.2: the fuels wallet for React
+- @fuel-wallet/sdk@0.15.2: the fuels wallet SDK
+- @fuels/react@0.15.3: the fuels SDK for React
+
 
 ```bash
-    cd bsafe-dapp &&
+    cd bako-safe-dapp &&
     yarn &&
 ```
 
@@ -34,23 +35,23 @@ Now we'll install the necessary dependencies to run the project, including:
 In the file `src/App.tsx` we add the Fuels provider with Bako Safe connector.
 
 ```tsx
-import React from "react";
-import ReactDOM from "react-dom/client";
-import App from "./App.tsx";
-import { FuelProvider } from "@fuel-wallet/react";
-import { BSafeConnector } from "bsafe";
-import { ChakraProvider } from "@chakra-ui/react";
-import { defaultTheme } from "./themes/default.ts";
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App.tsx';
+import { FuelProvider } from '@fuels/react';
+import { BakoSafeConnector } from 'bakosafe';
+import { ChakraProvider } from '@chakra-ui/react';
+import { defaultTheme } from './themes/default.ts';
 
-const bsafe = new BSafeConnector();
+const bakosafe = new BakoSafeConnector();
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
+ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <FuelProvider
-      theme={"dark"}
+      theme={'dark'}
       fuelConfig={{
-        connectors: [bsafe],
-        storage: null,
+        connectors: [bakosafe as any],
+        storage: null
       }}
     >
       <ChakraProvider theme={defaultTheme}>
@@ -84,7 +85,7 @@ async function handleTransfer() {
   const amount = bn.parseUnits(amountInput) ?? bn(1_000);
 
   const provider = await FuelWalletProvider.create(
-    BSafe.get('PROVIDER')
+      BakoSafe.getProviders('CHAIN_URL')
   );
 
   const wallet = await fuel.getWallet(account, provider);
@@ -94,8 +95,8 @@ async function handleTransfer() {
     amount,
     BaseAssetId,
     {
-      gasPrice: BSafe.get('GAS_PRICE'),
-      gasLimit: BSafe.get('GAS_LIMIT'),
+        gasPrice: bn(BakoSafe.getGasConfig('GAS_PRICE')),
+        gasLimit: bn(BakoSafe.getGasConfig('GAS_LIMIT')),
     }
   );
 
@@ -195,7 +196,7 @@ import contractIds from "./contracts/contract-ids.json";
 async function handleContractCall() {
   if (!account) return;
   const provider = await FuelWalletProvider.create(
-    BSafe.get('PROVIDER')
+    BakoSafe.getProviders('CHAIN_URL')
   );
   const wallet = await fuel.getWallet(account, provider);
   const contract = MyContractAbi__factory.connect(
@@ -206,8 +207,8 @@ async function handleContractCall() {
   const { value, transactionId } = await contract.functions
     .return_true(10)
     .txParams({
-      gasPrice: bn(BSafe.get('GAS_PRICE')),
-      gasLimit: bn(BSafe.get('GAS_LIMIT')),
+        gasPrice: bn(BakoSafe.getGasConfig('GAS_PRICE')),
+        gasLimit: bn(BakoSafe.getGasConfig('GAS_LIMIT')),
     })
     .call();
 }
