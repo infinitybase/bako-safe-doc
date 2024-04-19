@@ -1,10 +1,9 @@
 {
-  "index": "Intro",
-  "installation": "Installation",
+  "index": "Introduction",
   "sdk": {
-    "title": "SDK"
+    "title": "Bako Safe SDK"
   },
   "connector": {
-    "title": "Bako Wallet Connector"
+    "title": "Bako Connector"
   }
 }

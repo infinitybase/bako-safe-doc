@@ -1,0 +1,33 @@
+import { Card, Cards } from 'nextra/components'
+import Image from 'next/image'
+
+### Prerequisites
+
+- Node.js installed on your machine.
+- A TypeScript project set up where Bako Safe SDK will be installed.
+
+It is recommended to familiarize yourself with the following:
+
+- [Rust](https://www.rust-lang.org/tools/install)
+- [Fuelup: Fuel Toolchain](https://github.com/FuelLabs/fuelup)
+
+### Installation
+
+Install Bako Safe SDK in your TypeScript project.
+
+```
+npm install bakosafe
+```
+
+It is necessary to install [Fuels TS](https://github.com/fuelLabs/fuels-ts) in the project
+
+```
+npm install fuels@0.76.12
+```
+
+There are two methods for authentication and managing vaults: the **[Standalone](https://www.notion.so/Doc-Bako-Safe-b7f321072c434bac863b63a174667428?pvs=21)** method and the **[Bako Ecosystem](https://www.notion.so/Doc-Bako-Safe-b7f321072c434bac863b63a174667428?pvs=21)** method:
+
+<Image src='/images/BAKO_SDK_FLUXOGRAM.png' alt='BSafe sdk ecossystem' width={930} height={500} />
+
+- **[Bako Safe Ecosystem](https://www.notion.so/Doc-Bako-Safe-b7f321072c434bac863b63a174667428?pvs=21)**: This platform enables seamless management of your Vault within our app. You can view signatories, transactions, and balances, etc... and allows to use your Vault in other DApps via Wallet Connector.
+- **[Standalone](https://www.notion.so/Doc-Bako-Safe-b7f321072c434bac863b63a174667428?pvs=21)**: This implies that the application or system is able to function independently. In the case of Bako Safe, using it in a standalone mode refers to managing the Multisig Wallet or the Vault on your own.
