@@ -1,0 +1,14 @@
+### Creating Transaction
+
+```ts
+const tx = await vault.BakoSafeIncludeTransaction(params_tx)
+
+//using payload
+const transaction = await vault.BakoSafeIncludeTransaction(tx)
+
+//using id
+const transaction_aux = await vault.BakoSafeGetTransaction(transaction.BakoSafeTransactionId)
+
+//verificar esse com o gui
+const transaction_aux_byhash = await vault.BakoSafeGetTransaction(transaction.getHashTxId())
+```

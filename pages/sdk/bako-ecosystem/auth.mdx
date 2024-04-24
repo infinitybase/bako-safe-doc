@@ -2,12 +2,12 @@
 
 In order to authenticate using a Fuel Wallet, first you need a [Fuel Wallet Extension](https://chromewebstore.google.com/detail/fuel-wallet/dldjpboieedgcmpkchcjcbijingjcgok) installed on your browser.
 
-```tsx
+```ts
 import { Auth, TypeUser, IAuthCreateRequest, BakoSafe } from 'bakosafe'
 
 const params: IAuthCreateRequest = {
   address: <YOUR_FUEL_WALLET_ADDRESS />, // fuels..dsai
-  provider: BakoSafe.getProviders('PROVIDER'), // https://beta-5.fuel.network/graphql for example
+  provider: BakoSafe.getProviders('CHAIN_URL'), // https://beta-5.fuel.network/graphql for example
   type: TypeUser.FUEL, // TypeUser.FUEL
 }
 
@@ -25,7 +25,7 @@ In this code snippet, `Auth.create` method is used to create a new instance of
 **Authentication Using a Private Key**
 You can also authenticate by using a Private Key as follows (exportada anteriormente)
 
-```tsx
+```ts
 import { Auth, TypeUser, IAuthCreateRequest, BakoSafe } from "bakosafe"
 
 const YOUR_PRIVATE_KEY = <YOUR_PRIVATE_KEY>;
@@ -33,7 +33,7 @@ const YOUR_ADDRESS = <YOUR_ADDRESS>;
 
 const params: IAuthCreateRequest = {
 	address: YOUR_ADDRESS, // fuels..dsai
-	provider: BakoSafe.getProviders('PROVIDER'), // https://beta-5.fuel.network/graphql for example
+	provider: BakoSafe.getProviders('CHAIN_URL'), // https://beta-5.fuel.network/graphql for example
 	type: TypeUser.FUEL, // TypeUser.FUEL
 };
 const auth = await Auth.create(params);

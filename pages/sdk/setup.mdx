@@ -10,15 +10,15 @@ const bakoSafe = new BakoSafe()
 // setup gas
 bakoSafe.setGasConfig({
   //on decimal values, on usage is converted to bn()
-  gasLimit: 1000000,
-  gasPrice: 1,
+  GAS_LIMIT: 1000000,
+  GAS_PRICE: 1,
 })
 
 // setup provider
 bakoSafe.setProviders({
-  provider: 'https://beta-5.fuel.network/graphql',
-  bako_api: 'https://api-safe.bako.global',
-  bako_dapp: 'https://safe.bako.global',
+  PROVIDER: 'https://beta-5.fuel.network/graphql',
+  BAKO_API: 'https://api-safe.bako.global',
+  BAKO_DAPP: 'https://safe.bako.global',
 })
 ```
 
@@ -33,15 +33,15 @@ const bakoSafe = new BakoSafe()
 
 // get setup gas
 const gasConfig = {
-  gasLimit: bakoSafe.getGasConfig('GAS_LIMIT'),
-  gasPrice: bakoSafe.getGasConfig('GAS_PRICE'),
+  GAS_LIMIT: bakoSafe.getGasConfig('GAS_LIMIT'),
+  GAS_PRICE: bakoSafe.getGasConfig('GAS_PRICE'),
 }
 
 // get setup provider
 const providers = {
-  provider: bakoSafe.getProviders('CHAIN_URL'),
-  bako_api: bakoSafe.getProviders('SERVER_URL'),
-  bako_dapp: bakoSafe.getProviders('CLIENT_URL'),
+  PROVIDER: bakoSafe.getProviders('CHAIN_URL'),
+  BAKO_API: bakoSafe.getProviders('SERVER_URL'),
+  BAKO_DAPP: bakoSafe.getProviders('CLIENT_URL'),
 }
 ```
 

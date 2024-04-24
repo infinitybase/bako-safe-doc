@@ -1,0 +1,16 @@
+```ts
+import { NativeAssetId, Address } from 'fuels'
+
+const params_tx: IFormatTransfer = {
+  name: 'My transaction example name',
+  assets: [
+    {
+      assetId: NativeAssetId,
+      amounte: '0.0019',
+      to: Address.random().toString(),
+    },
+  ],
+}
+
+const tx = await vault.BakoSafeIncludeTransaction(params_tx)
+```

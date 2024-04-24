@@ -1,7 +1,8 @@
 {
   "overview": "Overview",
   "quick-start": "Quickstart",
-  "bako-ecosystem": "Bako Ecosystem Method (recommended)",
+  "bako-standalone": "Bako Standalone",
+  "bako-ecosystem": "Bako Ecosystem (recommended)",
   "standalone": "Standalone Method",
   "transaction": "Creating a Transaction",
   "setup": "Custom Setup",
