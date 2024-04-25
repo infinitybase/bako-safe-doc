@@ -3,8 +3,6 @@
   "quick-start": "Quickstart",
   "bako-standalone": "Bako Standalone",
   "bako-ecosystem": "Bako Ecosystem (recommended)",
-  "standalone": "Standalone Method",
-  "transaction": "Creating a Transaction",
   "setup": "Custom Setup",
   "reference": "Reference"
 }
