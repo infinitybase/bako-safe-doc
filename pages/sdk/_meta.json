@@ -1,7 +1,8 @@
 {
-  "auth": "Authentication",
-  "vault": "Vault",
-  "transaction": "Transaction",
-  "setup": "Setup",
+  "overview": "Overview",
+  "quick-start": "Quickstart",
+  "bako-standalone": "Bako Standalone",
+  "bako-ecosystem": "Bako Ecosystem (recommended)",
+  "setup": "Custom Setup",
   "reference": "Reference"
 }

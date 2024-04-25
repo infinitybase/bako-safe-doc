@@ -1,47 +1,49 @@
-## Methods
+### Methods
+
 ```ts
 interface IBakoSafeAuth {
-  address: string; // your address
-  token: string; // your code signed
-  worksapce?: string; // your workspace id
+  address: string // your address
+  token: string // your code signed
+  worksapce?: string // your workspace id
 }
 
 interface IAuthCreateRequest {
-  address: string; // your address
-  provider: string; // your provider, example: https://beta-5.fuel.network/graphql
-  type: TypeUser; // type of your signature, recomend use: TypeUser.FUEL
+  address: string // your address
+  provider: string // your provider, example: https://beta-5.fuel.network/graphql
+  type: TypeUser // type of your signature, recomend use: TypeUser.FUEL
 }
 
 interface IAuthCreateResponse {
-  code: string; // your code to sign
-  validAt: string; // expires code
-  origin: string; // your request dapp url
+  code: string // your code to sign
+  validAt: string // expires code
+  origin: string // your request dapp url
 }
 
 interface IAuthSignRequest {
-  digest: string; // your code, recived on IAuthCreateResponse
-  encoder: TypeUser; // type of your signature, recomend use: TypeUser.FUEL
-  signature: string; // your signed code
+  digest: string // your code, recived on IAuthCreateResponse
+  encoder: TypeUser // type of your signature, recomend use: TypeUser.FUEL
+  signature: string // your signed code
 }
 
 interface IAuthSignResponse {
-  accessToken: string; // your token to set IBakoSafeAuth
-  address: string; 
-  avatar: string;
-  user_id: string; // your ID on bako ecossistem
-  workspace: Workspace;
+  accessToken: string // your token to set IBakoSafeAuth
+  address: string
+  avatar: string
+  user_id: string // your ID on bako ecossistem
+  workspace: Workspace
 }
 
 interface Workspace {
-  id: string;
-  name: string;
-  avatar: string;
+  id: string
+  name: string
+  avatar: string
 }
 
 interface ISelectWorkspaceResponse extends Workspace {}
 ```
 
 ## Enums
+
 ```ts
 enum TypeUser {
   FUEL = 'FUEL',

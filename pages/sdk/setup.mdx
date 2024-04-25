@@ -1,60 +1,52 @@
-## Setup
+### Default Values
 
-To start using our package, you can simply import it and begin using it.
-Our SDK has some default values such as gas cost, gas limit, provider, which the abstractions we have within the SDK will use, and you can [refer](https://github.com/infinitybase/bako-safe/blob/master/packages/sdk/configurables.ts) to for these.
-However, it's possible to configure these values to meet the specifications of your dApp.
+Our SDK comes with [default values](https://github.com/infinitybase/bako-safe/blob/master/packages/sdk/configurables.ts) such as gas cost, gas limit, and provider, so you can simply import and use right away.
 
+```tsx
+import { BakoSafe } from 'bakosafe'
 
-## Usage setup values
-While using your dapp, you can query the default values for existing configurations through the SDK.
-<br/>
+const bakoSafe = new BakoSafe()
 
-```ts
-import { BakoSafe } from 'bakosafe';
+// setup gas
+bakoSafe.setGasConfig({
+  //on decimal values, on usage is converted to bn()
+  GAS_LIMIT: 1000000,
+  GAS_PRICE: 1,
+})
 
-const bakoSafe = new BakoSafe();
+// setup provider
+bakoSafe.setProviders({
+  PROVIDER: 'https://beta-5.fuel.network/graphql',
+  BAKO_API: 'https://api-safe.bako.global',
+  BAKO_DAPP: 'https://safe.bako.global',
+})
+```
+
+### Custom Values
+
+However, you can configure custom values when initializing the SDK to meet the specifications of your dApp.
+
+```tsx
+import { BakoSafe } from 'bakosafe'
+
+const bakoSafe = new BakoSafe()
 
 // get setup gas
 const gasConfig = {
-    gasLimit: bakoSafe.getGasConfig('GAS_LIMIT'),
-    gasPrice: bakoSafe.getGasConfig('GAS_PRICE'),
+  GAS_LIMIT: bakoSafe.getGasConfig('GAS_LIMIT'),
+  GAS_PRICE: bakoSafe.getGasConfig('GAS_PRICE'),
 }
 
 // get setup provider
 const providers = {
-    provider: bakoSafe.getProviders('CHAIN_URL'),
-    bako_api: bakoSafe.getProviders('SERVER_URL'),
-    bako_dapp: bakoSafe.getProviders('CLIENT_URL'),
+  PROVIDER: bakoSafe.getProviders('CHAIN_URL'),
+  BAKO_API: bakoSafe.getProviders('SERVER_URL'),
+  BAKO_DAPP: bakoSafe.getProviders('CLIENT_URL'),
 }
-
 ```
 
-## Set values
-If you want to use your own providers or simply don't want to use Bako's default providers, you can set them when initializing the use of our SDK.
-<br/>
-If you want to implement your own API to store some data off-chain similar to how BakoSafe works in the ecosystem mode, 
-simply access this [link](https://github.com/infinitybase/bako-safe/blob/master/packages/sdk/src/api/index.ts) to better understand which endpoints you need to implement in your own API.
-And check the implementation interface of each service, on `module/types.ts`, for example: `predicates/types.ts`.
+If you want to implement your own API to store some data off-chain similar to how Bako Safe works in the Bako Ecosystem method, simply access this [link](https://github.com/infinitybase/bako-safe/blob/master/packages/sdk/src/api/index.ts) to better understand which endpoints you need to implement in your own API. And check the implementation interface of each service, on `module/types.ts` (for example: `predicates/types.ts`).
 
-<br/>
+### Running on a Local Node
 
-```ts
-import { BakoSafe } from 'bakosafe';
-
-const bakoSafe = new BakoSafe();
-
-// setup gas
-bakoSafe.setGasConfig({ //on decimal values, on usage is converted to bn()
-    gasLimit: 1000000, 
-    gasPrice: 1,
-});
-
-
-// setup provider
-bakoSafe.setProviders({
-    provider: 'https://beta-5.fuel.network/graphql',
-    bako_api: 'https://api-safe.bako.global',
-    bako_dapp: 'https://safe.bako.global',
-})
-
-```
+If you are running a [FuelVM local node](https://github.com/infinitybase/bako-safe/tree/master/docker/chain), you might point the provider to your local node.
