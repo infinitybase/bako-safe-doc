@@ -1,5 +1,10 @@
 {
-  "index": "Introduction",
+  "index": {
+    "title": "Introduction",
+    "theme": {
+      "breadcrumb": false
+    }
+  },
   "sdk": {
     "title": "Bako Safe SDK"
   },
