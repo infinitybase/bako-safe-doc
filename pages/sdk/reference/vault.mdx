@@ -6,8 +6,6 @@ interface IPayloadVault {
   name?: string // name of your vault, default: vault_${hash}
   description?: string // description of your vault
   transactionRecursiveTimeout?: number // check status transaction interval, default: 1000ms
-  //Your ABI and bytecode is saved with us, if you created a vault on bako ecossistem format
-  //just remember the ID or address of the vault
   version?: string; // a unique string to identify your predicate contract, default: last version of predicate
   BakoSafeAuth?: IBakoSafeAuth // to safe your vault info, this auth is required
 }
@@ -18,11 +16,9 @@ interface IBakoSafeApi extends IBakoSafeAuth {
 }
 
 interface IConfVault {
-  SIGNATURES_COUNT: number // required number of signatures to send a transaction
-  SIGNERS: string[] // the address of signers, on b256 format (fuel...uayp)
   network: string // network to create this predicate
   chainId: number // id of your network
-  HASH_PREDICATE?: string // random string of your predicate, to make this unic
+  [key: string]: any; // configurables that depend on your predicate contract. Examples: SIGNATURES_COUNT and SIGNERS
 }
 
 type IBakoSafeIncludeTransaction = IFormatTransfer | TransactionRequestLike // external type of fuel
