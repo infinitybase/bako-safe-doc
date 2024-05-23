@@ -22,8 +22,35 @@ const params_vault: IPayloadVault = {
 }
 
 const vault = await Vault.create(params_vault)
+```
+It is also possible to create a vault using payload with a specific [predicate contract version](../version).
 
-console.log(vault.address.toString())
+```ts
+import { IPayloadVault, Vault, BakoSafe, Auth, TypeUser, IAuthCreateRequest } from 'bakosafe'
+
+import { Address } from 'fuels'
+
+const auth = await Auth.create(params_auth)
+
+//sign auth code using your PK
+const sig = await Auth.signerByPk(YOUR_PRIVATE_KEY, auth.code)
+await auth.signerByAccount(sig)
+
+// code is a unique string that identifies your predicate contract
+const predicateVersion = await Vault.BakoSafeGetPredicateVersionByCode(code)
+
+const params_vault: IPayloadVault = {
+  name: 'My First Vault',
+  description: 'This is my first example of a Vault',
+  configurable: {
+    SIGNATURES_COUNT: 1,
+    SIGNERS: [Address.fromRandom().toString(), Address.fromRandom().toString()],
+    network: BakoSafe.getProviders('CHAIN_URL'),
+  },
+  version: predicateVersion.code,
+}
+
+const vault = await Vault.create(params_vault)
 ```
 
 ### Creating Vault using ID or Address
