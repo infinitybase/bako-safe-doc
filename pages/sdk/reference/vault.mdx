@@ -11,14 +11,24 @@ interface IPayloadVault {
 }
 
 interface IBakoSafeApi extends IBakoSafeAuth {
-  id?: string // id of predicate on bako ecossistem
-  predicateAddress?: string // address of predicate on bako ecossistem
+  id?: string // id of predicate on bako ecosystem
+  predicateAddress?: string // address of predicate on bako ecosystem
 }
 
 interface IConfVault {
   network: string // network to create this predicate
   chainId: number // id of your network
   [key: string]: any; // configurables that depend on your predicate contract. Examples: SIGNATURES_COUNT and SIGNERS
+}
+
+export interface IPredicateVersion {
+  id: string // id of predicate contract version on bako ecosystem
+  name: string // name of predicate contract version on bako ecosystem
+  description?: string // description of predicate contract version on bako ecosystem
+  code: string // a unique string to identify the predicate contract version on bako ecosystem
+  bytes: string // binary of predicate contract version on bako ecosystem
+  abi: string // ABI of predicate contract version on bako ecosystem
+  active: boolean // a boolean to indicate whether the predicate contract version is valid on bako ecosystem
 }
 
 type IBakoSafeIncludeTransaction = IFormatTransfer | TransactionRequestLike // external type of fuel
