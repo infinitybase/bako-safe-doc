@@ -26,15 +26,9 @@ const vault = await Vault.create(params_vault)
 It is also possible to create a vault using payload with a specific [predicate contract version](../safe-code).
 
 ```ts
-import { IPayloadVault, Vault, BakoSafe, Auth, TypeUser, IAuthCreateRequest } from 'bakosafe'
+import { IPayloadVault, Vault, BakoSafe } from 'bakosafe'
 
 import { Address } from 'fuels'
-
-const auth = await Auth.create(params_auth)
-
-//sign auth code using your PK
-const sig = await Auth.signerByPk(YOUR_PRIVATE_KEY, auth.code)
-await auth.signerByAccount(sig)
 
 // code is a unique string that identifies your predicate contract
 const predicateVersion = await Vault.BakoSafeGetPredicateVersionByCode(code)
