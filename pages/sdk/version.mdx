@@ -1,0 +1,24 @@
+### Getting current version
+
+```tsx
+import { Vault } from 'bakosafe'
+
+const currentVersion = await Vault.BakoSafeGetCurrentPredicateVersion()
+```
+
+### Getting a specific version
+
+```tsx
+import { Vault } from 'bakosafe'
+
+// code is a unique string that identifies your predicate contract
+const version = await Vault.BakoSafeGetPredicateVersionByCode(code)
+```
+
+### Listing versions
+
+```tsx
+import { Vault } from 'bakosafe'
+
+const versions = await Vault.BakoSafeGetPredicateVersions()
+```

@@ -3,6 +3,7 @@
   "quick-start": "Quickstart",
   "bako-standalone": "Bako Standalone",
   "bako-ecosystem": "Bako Ecosystem (recommended)",
+  "version": "Contract Version",
   "setup": "Custom Setup",
   "reference": "Reference"
 }
