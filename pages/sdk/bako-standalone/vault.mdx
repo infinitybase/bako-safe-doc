@@ -20,8 +20,8 @@ It is also possible to create a vault with a specific [predicate contract versio
 import { IPayloadVault, Vault, BakoSafe } from 'bakosafe'
 import { Address } from 'fuels'
 
-// code is a unique string that identifies your predicate contract
-const predicateVersion = await Vault.BakoSafeGetPredicateVersionByCode(code)
+const safe_code = 'real_code'
+const predicateVersion = await Vault.BakoSafeGetPredicateVersionByCode(safe_code)
 
 const params: IPayloadVault = {
   name: 'My First Vault',
