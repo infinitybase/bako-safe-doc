@@ -3,7 +3,7 @@ import { IPayloadVault, Vault, BakoSafe } from 'bakosafe'
 import { Address } from 'fuels'
 
 // find the configurables needed to create a vault
-const { abi } = await Vault.BakoSafeGetCurrentPredicateVersion()
+const { abi } = await Vault.BakoSafeGetCurrentVersion()
 console.log(JSON.parse(abi).configurables)
 
 const params: IPayloadVault = {
@@ -26,7 +26,7 @@ import { IPayloadVault, Vault, BakoSafe } from 'bakosafe'
 import { Address } from 'fuels'
 
 const safe_code = 'real_code'
-const predicateVersion = await Vault.BakoSafeGetPredicateVersionByCode(safe_code)
+const vaultVersion = await Vault.BakoSafeGetVersionByCode(safe_code)
 
 const params: IPayloadVault = {
   name: 'My First Vault',
@@ -36,7 +36,7 @@ const params: IPayloadVault = {
     SIGNERS: [Address.fromRandom().toString(), Address.fromRandom().toString()],
     network: BakoSafe.getProviders('CHAIN_URL'),
   },
-  version: predicateVersion.code,
+  version: vaultVersion.code,
 }
 
 const vault = await Vault.create(params)

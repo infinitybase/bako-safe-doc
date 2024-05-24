@@ -1,17 +1,17 @@
 ### Creating Vault using Payload
 
 ```ts
-import { IPayloadVault, Vault, BakoSafe, Auth, TypeUser, IAuthCreateRequest } from 'bakosafe'
+import { IPayloadVault, Vault, BakoSafe, Auth } from 'bakosafe'
 import { Address } from 'fuels'
 
 const auth = await Auth.create(params_auth)
 
-//sign auth code using your PK
+// sign auth code using your PK
 const sig = await Auth.signerByPk(YOUR_PRIVATE_KEY, auth.code)
 await auth.signerByAccount(sig)
 
 // find the configurables needed to create a vault
-const { abi } = await Vault.BakoSafeGetCurrentPredicateVersion()
+const { abi } = await Vault.BakoSafeGetCurrentVersion()
 console.log(JSON.parse(abi).configurables)
 
 const params_vault: IPayloadVault = {
@@ -31,17 +31,17 @@ const vault = await Vault.create(params_vault)
 It is also possible to create a vault using payload with a specific [predicate contract version](../safe-code).
 
 ```ts
-import { IPayloadVault, Vault, BakoSafe, Auth, TypeUser, IAuthCreateRequest } from 'bakosafe'
+import { IPayloadVault, Vault, BakoSafe, Auth } from 'bakosafe'
 import { Address } from 'fuels'
 
 const auth = await Auth.create(params_auth)
 
-//sign auth code using your PK
+// sign auth code using your PK
 const sig = await Auth.signerByPk(YOUR_PRIVATE_KEY, auth.code)
 await auth.signerByAccount(sig)
 
 const safe_code = 'real_code'
-const predicateVersion = await Vault.BakoSafeGetPredicateVersionByCode(safe_code)
+const vaultVersion = await Vault.BakoSafeGetPredicateVersionByCode(safe_code)
 
 const params_vault: IPayloadVault = {
   name: 'My First Vault',
@@ -52,7 +52,7 @@ const params_vault: IPayloadVault = {
     network: BakoSafe.getProviders('CHAIN_URL'),
   },
   BakoSafeAuth: auth.BakoSafeAuth,
-  version: predicateVersion.code,
+  version: vaultVersion.code,
 }
 
 const vault = await Vault.create(params_vault)
@@ -80,7 +80,7 @@ const auxVault = await Vault.create({
   id: vault.BakoSafeVaultId,
 })
 
-//using Address
+// using Address
 const auxVault = await Vault.create({
   ...auth.BakoSafeAuth,
   predicateAddress: vault.address.toString(),

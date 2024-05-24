@@ -3,7 +3,7 @@
 ```tsx
 import { Vault } from 'bakosafe'
 
-const currentVersion = await Vault.BakoSafeGetCurrentPredicateVersion()
+const currentVersion = await Vault.BakoSafeGetCurrentVersion()
 ```
 
 ### Getting a specific version
@@ -14,7 +14,7 @@ import { Vault } from 'bakosafe'
 // safe_code is a unique string that identifies your predicate contract
 const safe_code = 'real_code'
 
-const version = await Vault.BakoSafeGetPredicateVersionByCode(safe_code)
+const version = await Vault.BakoSafeGetVersionByCode(safe_code)
 ```
 
 ### Listing versions
@@ -22,5 +22,5 @@ const version = await Vault.BakoSafeGetPredicateVersionByCode(safe_code)
 ```tsx
 import { Vault } from 'bakosafe'
 
-const versions = await Vault.BakoSafeGetPredicateVersions()
+const versions = await Vault.BakoSafeGetVersions()
 ```
