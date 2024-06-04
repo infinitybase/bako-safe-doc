@@ -6,24 +6,29 @@ interface IPayloadVault {
   name?: string // name of your vault, default: vault_${hash}
   description?: string // description of your vault
   transactionRecursiveTimeout?: number // check status transaction interval, default: 1000ms
-  //Your ABI and bytecode is saved with us, if you created a vault on bako ecossistem format
-  //just remember the ID or address of the vault
-  abi?: string // ABI of your predicate contract, default: last version of predicate
-  bytecode?: string // binary of your predicate contract, default: last version of predicate
+  version?: string; // a unique string to identify your predicate contract, default: last version of predicate
   BakoSafeAuth?: IBakoSafeAuth // to safe your vault info, this auth is required
 }
 
 interface IBakoSafeApi extends IBakoSafeAuth {
-  id?: string // id of predicate on bako ecossistem
-  predicateAddress?: string // address of predicate on bako ecossistem
+  id?: string // id of predicate on bako ecosystem
+  predicateAddress?: string // address of predicate on bako ecosystem
 }
 
 interface IConfVault {
-  SIGNATURES_COUNT: number // required number of signatures to send a transaction
-  SIGNERS: string[] // the address of signers, on b256 format (fuel...uayp)
   network: string // network to create this predicate
-  chainId: number // id of your netowork
-  HASH_PREDICATE?: string // random string of your predicate, to make this unic
+  chainId: number // id of your network
+  [key: string]: any; // configurables that depend on your predicate contract. Examples: SIGNATURES_COUNT and SIGNERS
+}
+
+export interface IPredicateVersion {
+  id: string // id of predicate contract version on bako ecosystem
+  name: string // name of predicate contract version on bako ecosystem
+  description?: string // description of predicate contract version on bako ecosystem
+  code: string // a unique string to identify the predicate contract version on bako ecosystem
+  bytes: string // binary of predicate contract version on bako ecosystem
+  abi: string // ABI of predicate contract version on bako ecosystem
+  active: boolean // a boolean to indicate whether the predicate contract version is valid on bako ecosystem
 }
 
 type IBakoSafeIncludeTransaction = IFormatTransfer | TransactionRequestLike // external type of fuel

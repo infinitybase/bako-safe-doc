@@ -1,5 +1,5 @@
 {
-  "auth": "auth",
-   "vault": "vault",
-   "transaction": "transaction"
+  "auth": "Authentication",
+  "vault": "Vault",
+  "transaction": "Transaction"
 }

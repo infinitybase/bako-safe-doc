@@ -2,9 +2,14 @@
 import { IPayloadVault, Vault, BakoSafe } from 'bakosafe'
 import { Address } from 'fuels'
 
+// find the configurables needed to create a vault
+const { abi } = await Vault.BakoSafeGetCurrentVersion()
+console.log(JSON.parse(abi).configurables)
+
 const params: IPayloadVault = {
   name: 'My First Vault',
   description: 'This is my first example of a Vault',
+  // configurable properties are defined according to the ABI configurables of the predicate contract version 
   configurable: {
     SIGNATURES_COUNT: 1,
     SIGNERS: [Address.fromRandom().toString(), Address.fromRandom().toString()],
@@ -13,6 +18,26 @@ const params: IPayloadVault = {
 }
 
 const vault = await Vault.create(params)
+```
+It is also possible to create a vault with a specific [predicate contract version](../safe-code).
 
-console.log(vault.address.toString())
+```ts
+import { IPayloadVault, Vault, BakoSafe } from 'bakosafe'
+import { Address } from 'fuels'
+
+const safe_code = 'real_code'
+const vaultVersion = await Vault.BakoSafeGetVersionByCode(safe_code)
+
+const params: IPayloadVault = {
+  name: 'My First Vault',
+  description: 'This is my first example of a Vault',
+  configurable: {
+    SIGNATURES_COUNT: 1,
+    SIGNERS: [Address.fromRandom().toString(), Address.fromRandom().toString()],
+    network: BakoSafe.getProviders('CHAIN_URL'),
+  },
+  version: vaultVersion.code,
+}
+
+const vault = await Vault.create(params)
 ```
