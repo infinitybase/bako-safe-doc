@@ -1,0 +1,41 @@
+import Image from 'next/image'
+
+### Prerequisites
+It is recommended to familiarize yourself with the following:
+
+- [Rust](https://www.rust-lang.org/tools/install)
+- [Fuelup: Fuel Toolchain](https://github.com/FuelLabs/fuelup)
+
+
+Bako Gateway URL: `https://api.bako.global/v1/graphql?api_token=APITOKEN`
+
+### Steps
+
+#### 1: Log in to Bako Safe
+Go to [Bako Safe](https://safe.bako.global/) and select a vault. If you don’t have a vault with funds, you will need to create one using the `Create Vault` button, go to the new vault dashboard, and click on `+Faucet` to add funds.
+
+#### 2: Generate an API Token
+Under `Settings`, navigate to `API Token` on the right side menu and create a new API token for the vault.
+
+<Image src='/images/gateway-token-example.png' alt='Bako gateway token example' width={930} height={500} />
+
+> Locate the API Token under the Settings panel
+
+Example token: `f8da721c83c5da37000691027ccb4d629128ffe4071bd044af2d9c8052da7811dc8349c006173cdf05f265f7717d0010ea406ae74d0f0969359e97554d991d791786777f7c21a866dc1c3538defe5875`
+
+#### 3: Run forc-deploy
+Within the desired contract folder, open your terminal and deploy the contract using the gateway URL:
+
+```
+forc deploy --default-signer --node-url 'https://api.bako.global/v1/graphql?api_token=APITOKEN'
+```
+> Replace `APITOKEN` with your actual API token.
+
+
+
+#### 4: Finalize the Deployment
+Now, you will be able to see the deployment within the Bako Safe app and sign accordingly with the vault conditions.
+
+<Image src='/images/gateway-transaction-example.png' alt='Bako gateway transaction example' width={930} height={500} />
+
+> Visualizing contract deployed within the Vault

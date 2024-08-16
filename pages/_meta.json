@@ -10,5 +10,8 @@
   },
   "connector": {
     "title": "Bako Connector"
+  },
+  "gateway": {
+    "title": "Bako Gateway"
   }
 }
