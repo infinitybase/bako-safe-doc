@@ -1,9 +1,10 @@
 use std::string::ToString;
 use fuels::prelude::{Contract, CreateTransactionBuilder, LoadConfiguration, Provider};
 
+/// The API token to connect to Bako Gateway
+/// Generate at https://safe.bako.global/ in the vault setting
 const API_TOKEN: String = "".to_string();
 const BAKO_GATEWAY_URL: String = "https://api.bako.global/v1/graphql?api_token=".to_string();
-
 
 #[tokio::main]
 async fn main() {
