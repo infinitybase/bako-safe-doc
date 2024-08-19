@@ -1,0 +1,8 @@
+[package]
+name = "rust-contract-deploy"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+fuels = { version = "0.66.0", features = ["fuel-core-lib"] }
+tokio = { version = "1.0.0", features = ["rt", "rt-multi-thread", "macros"] }
