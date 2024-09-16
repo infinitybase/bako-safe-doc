@@ -1,0 +1,149 @@
+import {Callout} from 'nextra/components'
+
+1. Setup the URL, API Token, the WASM Bytecode and the subsection size:
+
+```rust
+const API_TOKEN: &str = "";
+const FUEL_NODE_URL: &str = "https://testnet.fuel.network/v1/graphql";
+const BAKO_GATEWAY_URL: &str = "https://api.bako.global/v1/graphql?api_token=";
+const WASM_BYTECODE: &[u8] = include_bytes!("../local-testnet/fuel-core-wasm-executor.wasm");
+const SUBSECTION_SIZE: usize = 192 * 1024;
+```
+
+2. Setup the wallet to send the Upload transactions and connect in the Fuel Provider:
+
+```rust
+// Start the client with the Fuel Provider
+let client = FuelClient::new(node_url.clone()).unwrap();
+let provider = Provider::connect(node_url.clone()).await?;
+
+let mut wallet = WalletUnlocked::new_from_private_key(
+    SecretKey::from_str("a449b1ffee0e2205fa924c6740cc48b3b473aa28587df6dab12abc245d1f5298")?,
+    Some(provider.clone()),
+);
+```
+
+3. Create the subsections and submit the transaction with the wallet:
+<Callout type="warning">
+    It is necessary to send the upgrade transactions through a wallet because multiple transactions are generated for
+    the bytecode upload. After signing the first transaction, the others will be invalid because the UTXO was spent.
+</Callout>
+
+```rust
+// Split the bytecode into subsections
+let subsections = UploadSubsection::split_bytecode(WASM_BYTECODE, SUBSECTION_SIZE).unwrap();
+let root = subsections[0].root;
+
+// Create transactions from the subsections
+transactions_from_subsections(subsections, wallet.clone(), client.clone()).await?;
+```
+
+```rust
+async fn transactions_from_subsections(
+    subsections: Vec<UploadSubsection>,
+    wallet: WalletUnlocked,
+    client: FuelClient,
+) -> Result<()> {
+    let provider = wallet.provider().unwrap();
+
+    for subsection in subsections {
+        let mut builder =
+            UploadTransactionBuilder::prepare_subsection_upload(subsection, TxPolicies::default())
+                .with_inputs(vec![])
+                .with_outputs(vec![]);
+
+        builder.add_signer(wallet.clone())?;
+
+        let mut max_fee = builder.estimate_max_fee(provider.clone()).await?;
+        max_fee = max_fee.add(1000);
+
+        wallet.adjust_for_fee(&mut builder, max_fee).await?;
+
+        let transaction = builder
+            .with_tx_policies(TxPolicies::default().with_max_fee(max_fee))
+            .build(provider.clone())
+            .await?;
+
+        let upload: Upload = transaction.into();
+        let consensus = client.chain_info().await?.consensus_parameters;
+        let gas_costs = consensus.gas_costs();
+
+        client
+            .submit_and_await_commit(&upload.clone().into())
+            .await?;
+
+        println!(
+            "Transaction {:?}/{:?}",
+            upload.subsection_index(),
+            upload.subsections_number()
+        );
+    }
+
+    Ok(())
+}
+```
+
+4. Setup the client and provider for send to Bako the upgrade transaction:
+
+```rust
+// Setup the client and provider for send to Bako
+let client = FuelClient::new(bako_node_url.clone()).unwrap();
+let provider = Provider::connect(bako_node_url).await?;
+wallet.set_provider(provider);
+```
+
+5. Submit the transaction to the Gateway:
+
+```rust
+// Send upgrade transaction to the Bako Gateway
+transaction_upgrade_state(root, wallet, client).await?;
+```
+
+```rust
+async fn transaction_upgrade_state(
+    root: Bytes32,
+    wallet: WalletUnlocked,
+    client: FuelClient,
+) -> Result<()> {
+    let max_fee = 148300;
+
+    let provider = wallet.provider().unwrap();
+    let base_asset_id = provider.base_asset_id();
+    let mut builder = UpgradeTransactionBuilder::prepare_state_transition_upgrade(
+        root,
+        TxPolicies::default().with_max_fee(max_fee),
+    );
+
+    builder.add_signer(wallet.clone())?;
+
+    let inputs = wallet
+        .get_asset_inputs_for_amount(*base_asset_id, max_fee, None)
+        .await?;
+    let outputs = wallet.get_asset_outputs_for_amount(wallet.address(), *base_asset_id, max_fee);
+
+    wallet.adjust_for_fee(&mut builder, max_fee).await?;
+
+    let transaction = builder
+        .with_tx_policies(TxPolicies::default().with_max_fee(max_fee))
+        .with_inputs(inputs)
+        .with_outputs(outputs)
+        .build(provider.clone())
+        .await?;
+
+    let upgrade: Upgrade = transaction.into();
+    let tx_result = client.submit_and_await_commit(&upgrade.clone().into()).await;
+
+    match tx_result {
+        Ok(fuel_tx) => {
+            println!("Transaction: {:?}", fuel_tx);
+        }
+        Err(_) => {
+            println!("Transaction failed");
+        }
+    }
+
+    Ok(())
+}
+```
+
+[See in context]()

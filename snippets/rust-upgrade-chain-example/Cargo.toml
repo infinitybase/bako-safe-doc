@@ -1,0 +1,20 @@
+[package]
+name = "rust-tx-upgrade"
+version = "0.1.0"
+edition = "2021"
+
+[[test]]
+harness = true
+name = "integration_tests"
+path = "tests/lib.rs"
+
+[dependencies]
+fuels = { version = "0.66.2", features = ["fuel-core-lib", "std", "default"] }
+tokio = { version = "1.0.0", features = ["rt", "rt-multi-thread", "macros"] }
+anyhow = "1.0.86"
+fuel-core-chain-config = { version = "0.35.0" }
+fuel-core = { version = "0.35.0" }
+fuel-tx = "0.56.0"
+itertools = "0.12.1"
+hex = "0.4.3"
+serde_json = "1.0.127"
