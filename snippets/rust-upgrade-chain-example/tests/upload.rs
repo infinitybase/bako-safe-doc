@@ -10,9 +10,9 @@ use std::str::FromStr;
 
 /// The API token to connect to Bako Gateway
 /// Generate at https://safe.bako.global/ in the vault setting
-const API_TOKEN: &str = "ed8caa7e41699a1442ff4cd39a5802670f7bb31b86332bc06dbf60f1c35e3aca9fce1d7c37757c42b8fa14bf3dedb4cfde79a64cee0a5de0a57cd387918a24d531890e79ac2c8430448c3f2c39c5ae67";
-const BAKO_GATEWAY_URL: &str = "http://localhost:4444/v1/graphql?api_token=";
-const FUEL_NODE_URL: &str = "http://localhost:4000/v1/graphql";
+const API_TOKEN: &str = "";
+const BAKO_GATEWAY_URL: &str = "https://api.bako.global/v1/graphql?api_token=";
+const FUEL_NODE_URL: &str = "";
 const WASM_BYTECODE: &[u8] = include_bytes!("../local-testnet/fuel-core-wasm-executor.wasm");
 const SUBSECTION_SIZE: usize = 192 * 1024;
 
@@ -120,11 +120,6 @@ async fn transactions_from_subsections(
             .await?;
 
         let upload: Upload = transaction.into();
-        let consensus = client.chain_info().await?.consensus_parameters;
-        let gas_costs = consensus.gas_costs();
-
-        let i = upload.gas_used_by_metadata(gas_costs);
-        println!("Gas used by metadata: {:?}", i);
 
         client
             .submit_and_await_commit(&upload.clone().into())
