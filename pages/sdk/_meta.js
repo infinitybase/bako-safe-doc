@@ -1,0 +1,9 @@
+export default {
+    "overview": "Overview",
+    "quick-start": "Quickstart",
+    "bako-standalone": "Bako Standalone",
+    "bako-ecosystem": "Bako Ecosystem (recommended)",
+    "safe-code": "Safe Code",
+    "setup": "Custom Setup",
+    "reference": "Reference"
+}
