@@ -1,15 +1,21 @@
 1. Setup the URL and API Token:
 
 ```rust
+/// The API token to connect to Bako Gateway
 const API_TOKEN: &str = "";
+
+/// Bako Gateway url
 const BAKO_GATEWAY_URL: &str = "https://api.bako.global/v1/graphql?api_token=";
+
+/// Target node url
+const FUEL_NODE_URL: &str = "";
 ```
 
 2. Connect in the Provider:
 
 ```rust
-let provider = Provider::connect(node_url.clone()).await?;
-wallet.set_provider(provider.clone());
+let node_url = format!("{BAKO_GATEWAY_URL}{API_TOKEN}");
+let provider = Provider::connect(FUEL_NODE_URL).await?;
 ```
 
 3. Load the consensus parameters and set the new values (in this example we are setting the gas costs to zero):
@@ -26,22 +32,9 @@ new_consensus_parameters.set_gas_costs(GasCosts::free());
 // Prepare the upgrade transaction with the new consensus parameters
 let mut builder = UpgradeTransactionBuilder::prepare_consensus_parameters_upgrade(
     &new_consensus_parameters,
-    TxPolicies::default().with_max_fee(amount),
+    TxPolicies::default(),
 );
-let base_asset_id = provider.base_asset_id();
-let inputs = wallet
-    .get_asset_inputs_for_amount(*base_asset_id, amount, None)
-    .await?;
-let outputs = wallet.get_asset_outputs_for_amount(wallet.address(), *base_asset_id, amount);
-
-builder.add_signer(wallet.clone())?;
-
-let tx = builder
-    .with_inputs(inputs)
-    .with_outputs(outputs)
-    .build(provider.clone())
-    .await?;
-
+let tx = builder.build(provider.clone()).await?;
 let tx_upgrade = Transaction::from(tx);
 ```
 

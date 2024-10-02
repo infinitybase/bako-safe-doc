@@ -1,6 +1,5 @@
 use fuel_tx::field::{SubsectionIndex, SubsectionsNumber};
-use fuel_tx::policies::Policies;
-use fuel_tx::{Bytes32, Chargeable, Input, Transaction, Upgrade, Upload};
+use fuel_tx::{Bytes32, Upgrade, Upload};
 use fuels::client::FuelClient;
 use fuels::crypto::SecretKey;
 use fuels::prelude::*;
@@ -10,9 +9,14 @@ use std::str::FromStr;
 
 /// The API token to connect to Bako Gateway
 /// Generate at https://safe.bako.global/ in the vault setting
-const API_TOKEN: &str = "";
+const API_TOKEN: &str = "7b461dc46264421ad244ba5d9db551d45408dd3c698d6865980b8ef57b65908bfb9e2d00ec87dff86573b4388d65ad84ff2e5e548b97e4df2d0eb3f456c8e0115d8eedd6b4242b638496dae319b18c68";
+
+/// Bako Gateway url
 const BAKO_GATEWAY_URL: &str = "https://api.bako.global/v1/graphql?api_token=";
-const FUEL_NODE_URL: &str = "";
+
+/// Target node url
+const FUEL_NODE_URL: &str = "=";
+
 const WASM_BYTECODE: &[u8] = include_bytes!("../local-testnet/fuel-core-wasm-executor.wasm");
 const SUBSECTION_SIZE: usize = 192 * 1024;
 
@@ -39,48 +43,23 @@ async fn test_upload_tx() -> Result<()> {
     transactions_from_subsections(subsections, wallet.clone(), client.clone()).await?;
 
     // Setup the client and provider for send to Bako
-    let client = FuelClient::new(bako_node_url.clone()).unwrap();
     let provider = Provider::connect(bako_node_url).await?;
-    wallet.set_provider(provider);
 
     // Send upgrade transaction to the Bako Gateway
-    transaction_upgrade_state(root, wallet, client).await?;
+    transaction_upgrade_state(root, provider).await?;
 
     Ok(())
 }
 
-async fn transaction_upgrade_state(
-    root: Bytes32,
-    wallet: WalletUnlocked,
-    client: FuelClient,
-) -> Result<()> {
-    let max_fee = 148300;
+async fn transaction_upgrade_state(root: Bytes32, provider: Provider) -> Result<()> {
+    let mut builder =
+        UpgradeTransactionBuilder::prepare_state_transition_upgrade(root, TxPolicies::default());
+    let client = FuelClient::new(provider.url()).unwrap();
 
-    let provider = wallet.provider().unwrap();
-    let base_asset_id = provider.base_asset_id();
-    let mut builder = UpgradeTransactionBuilder::prepare_state_transition_upgrade(
-        root,
-        TxPolicies::default().with_max_fee(max_fee),
-    );
-
-    builder.add_signer(wallet.clone())?;
-
-    let inputs = wallet
-        .get_asset_inputs_for_amount(*base_asset_id, max_fee, None)
-        .await?;
-    let outputs = wallet.get_asset_outputs_for_amount(wallet.address(), *base_asset_id, max_fee);
-
-    wallet.adjust_for_fee(&mut builder, max_fee).await?;
-
-    let transaction = builder
-        .with_tx_policies(TxPolicies::default().with_max_fee(max_fee))
-        .with_inputs(inputs)
-        .with_outputs(outputs)
-        .build(provider.clone())
-        .await?;
+    let transaction = builder.build(provider).await?;
 
     let upgrade: Upgrade = transaction.into();
-    let tx_result = client.submit_and_await_commit(&upgrade.clone().into()).await;
+    let tx_result = client.submit(&upgrade.clone().into()).await;
 
     match tx_result {
         Ok(fuel_tx) => {
@@ -110,7 +89,7 @@ async fn transactions_from_subsections(
         builder.add_signer(wallet.clone())?;
 
         let mut max_fee = builder.estimate_max_fee(provider.clone()).await?;
-        max_fee = max_fee.add(1000);
+        max_fee = max_fee.add(10000);
 
         wallet.adjust_for_fee(&mut builder, max_fee).await?;
 
