@@ -1,0 +1,48 @@
+1. Setup the URL and API Token:
+
+```rust
+/// The API token to connect to Bako Gateway
+const API_TOKEN: &str = "";
+
+/// Bako Gateway url
+const BAKO_GATEWAY_URL: &str = "https://api.bako.global/v1/graphql?api_token=";
+
+/// Target node url
+const FUEL_NODE_URL: &str = "";
+```
+
+2. Connect in the Provider:
+
+```rust
+let node_url = format!("{BAKO_GATEWAY_URL}{API_TOKEN}");
+let provider = Provider::connect(FUEL_NODE_URL).await?;
+```
+
+3. Load the consensus parameters and set the new values (in this example we are setting the gas costs to zero):
+
+```rust
+// Get consensus parameters and upgrade the gas costs
+let mut new_consensus_parameters = provider.chain_info().await?.consensus_parameters;
+new_consensus_parameters.set_gas_costs(GasCosts::free());
+```
+
+4. Prepare the transaction for consensus parameters upgrade:
+
+```rust
+// Prepare the upgrade transaction with the new consensus parameters
+let mut builder = UpgradeTransactionBuilder::prepare_consensus_parameters_upgrade(
+    &new_consensus_parameters,
+    TxPolicies::default(),
+);
+let tx = builder.build(provider.clone()).await?;
+let tx_upgrade = Transaction::from(tx);
+```
+
+5. Submit the transaction to the Gateway:
+
+```rust
+let client = FuelClient::new(node_url).unwrap();
+let tx_id = client.submit(&tx_upgrade).await?;
+```
+
+[See in context]()

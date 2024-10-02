@@ -1,0 +1,12 @@
+import Image from 'next/image'
+
+The **Bako Gateway** is a central service that empowers the Vault to deploy contracts within our protocol securely and efficiently. Operating as a specialized GraphQL Gateway, it preserves the consistency of the schemas used by the Fuel Network, ensuring integrity and compatibility within the ecosystem.
+
+### How it works
+Our GraphQL Gateway integrates seamlessly with the Fuel Network ([﻿testnet.fuel.network/v1/playground](https://testnet.fuel.network/v1/playground)) by using identical schemas, ensuring consistent interaction with the service. To accommodate our protocol, some methods are customized as follows:
+
+- **Mutation `submit`** : Transactions of type **Create** are routed to our server for specialized handling, while other transaction types are forwarded to the Fuel Network.
+- **Subscription `submitAndWait`** : Transactions of type **Create** are processed, while other types are rejected.
+For enhanced security, an **API_TOKEN** must be generated. This token is a hash derived from the Vault and owner identifiers and is managed exclusively by the owner. Access to this token is available only at the time of its creation.
+
+<Image src='/images/gateway-flow.png' alt='BSafe sdk ecossystem' width={930} height={500} />
