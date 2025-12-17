@@ -1,0 +1,205 @@
+# Signing Transactions
+
+Learn how signatures are collected and managed for multi-sig transactions.
+
+## Signature Flow
+
+In a multi-signature vault, transactions require signatures from multiple parties:
+
+```
+Transaction Created
+       ↓
+Signer 1 signs → Witness added
+       ↓
+Signer 2 signs → Witness added
+       ↓
+Threshold reached → Ready to send
+       ↓
+Execute on-chain
+```
+
+## Signing Methods
+
+### Via Bako Safe App (Recommended)
+
+The easiest way for signers to approve transactions:
+
+1. Transaction creator shares the transaction hash or link
+2. Signers visit [safe.bako.global](https://safe.bako.global)
+3. Connect their wallet
+4. Review and sign the pending transaction
+5. System automatically detects when threshold is reached
+
+### Via SDK (Programmatic)
+
+For automated signing or custom interfaces:
+
+```typescript
+// Sign a transaction programmatically
+await provider.signTransaction({
+  hash: transactionHash,
+  signature: walletSignature,
+  approve: true  // true to approve, false to reject
+});
+```
+
+## Witness Structure
+
+Each signature is stored as a witness:
+
+```typescript
+interface IWitnesses {
+  account: string;           // Signer address
+  signature: string;         // The signature
+  status: WitnessStatus;     // Approval status
+  updatedAt: Date;           // Timestamp
+}
+```
+
+### WitnessStatus
+
+```typescript
+enum WitnessStatus {
+  REJECTED = 'rejected',
+  DONE = 'done',
+  PENDING = 'pending',
+  CANCELED = 'canceled'
+}
+```
+
+## Checking Signature Status
+
+```typescript
+const txData = await vault.transactionFromHash(hashTxId);
+
+console.log('Signatures:', txData.witnesses.length);
+console.log('Required:', txData.requiredSigners);
+console.log('Status:', txData.status);
+
+// List who has signed
+txData.witnesses.forEach(witness => {
+  console.log(`${witness.account}: ${witness.status}`);
+});
+
+// Check if ready to send
+const signaturesCollected = txData.witnesses.filter(
+  w => w.status === 'done'
+).length;
+
+if (signaturesCollected >= txData.requiredSigners) {
+  console.log('Ready to execute!');
+}
+```
+
+## Signature Encoding
+
+Different wallet types require different signature encoding:
+
+```typescript
+import { SignatureType } from 'bakosafe';
+
+// Signature types
+enum SignatureType {
+  WebAuthn = 0,    // Passkey signatures
+  Fuel = 1,        // Fuel wallet signatures
+  Evm = 2,         // EVM wallet signatures
+  RawNoPrefix = 9  // Raw signatures
+}
+```
+
+### Encoding a Signature
+
+```typescript
+const encodedSignature = vault.encodeSignature(
+  signerAddress,
+  rawSignature
+);
+```
+
+## Multi-Wallet Type Example
+
+A vault with different wallet types:
+
+```typescript
+// Vault with mixed signers
+const config = {
+  SIGNATURES_COUNT: 2,
+  SIGNERS: [
+    fuelWalletAddress,    // Fuel native
+    evmWalletAddress,     // MetaMask
+    passkeyAddress        // WebAuthn
+  ]
+};
+
+// Each signer uses their own wallet to sign
+// SDK handles encoding automatically
+```
+
+## Monitoring for Signatures
+
+Poll for signature updates:
+
+```typescript
+async function waitForSignatures(
+  vault: Vault,
+  hashTxId: string,
+  requiredCount: number
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const interval = setInterval(async () => {
+      try {
+        const txData = await vault.transactionFromHash(hashTxId);
+
+        const signed = txData.witnesses.filter(
+          w => w.status === 'done'
+        ).length;
+
+        console.log(`Signatures: ${signed}/${requiredCount}`);
+
+        if (signed >= requiredCount) {
+          clearInterval(interval);
+          resolve();
+        }
+
+        if (txData.status === 'declined' || txData.status === 'canceled') {
+          clearInterval(interval);
+          reject(new Error(`Transaction ${txData.status}`));
+        }
+      } catch (error) {
+        clearInterval(interval);
+        reject(error);
+      }
+    }, 5000); // Check every 5 seconds
+  });
+}
+
+// Usage
+await waitForSignatures(vault, hashTxId, 2);
+console.log('All signatures collected!');
+```
+
+## Rejecting a Transaction
+
+Signers can reject instead of approving:
+
+```typescript
+await provider.signTransaction({
+  hash: transactionHash,
+  signature: walletSignature,
+  approve: false  // Reject the transaction
+});
+```
+
+If enough signers reject (preventing threshold from being reached), the transaction status becomes `DECLINED`.
+
+## Best Practices
+
+1. **Clear communication**: Share transaction details with all signers
+2. **Deadline awareness**: Set expectations for when signatures are needed
+3. **Notification system**: Implement alerts when signatures are pending
+4. **Audit trail**: Log who signed and when
+
+## Next Steps
+
+- [Sending Transactions](/sdk/transactions/sending)
+- [Status Monitoring](/sdk/transactions/status)

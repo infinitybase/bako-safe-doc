@@ -1,0 +1,228 @@
+# Enums
+
+Enumeration types used throughout the Bako Safe SDK.
+
+## TypeUser
+
+User authentication type for signing operations.
+
+```typescript
+enum TypeUser {
+  /** Native Fuel wallet */
+  FUEL = 'FUEL',
+  /** WebAuthn/Passkey authentication */
+  WEB_AUTHN = 'WEB_AUTHN',
+  /** EVM wallet (MetaMask, etc.) */
+  EVM = 'EVM',
+  /** Social login */
+  SOCIAL = 'SOCIAL'
+}
+```
+
+### Usage
+
+```typescript
+import { TypeUser } from 'bakosafe';
+
+// Specify user type for authentication
+const provider = await BakoProvider.setup({
+  address: walletAddress,
+  type: TypeUser.FUEL
+});
+```
+
+## TransactionStatus
+
+Status of a vault transaction.
+
+```typescript
+enum TransactionStatus {
+  /** Waiting for required signatures */
+  AWAIT_REQUIREMENTS = 'await_requirements',
+
+  /** All signatures collected, waiting to be sent */
+  PENDING_SENDER = 'pending_sender',
+
+  /** Being processed on-chain */
+  PROCESS_ON_CHAIN = 'process_on_chain',
+
+  /** Successfully executed */
+  SUCCESS = 'success',
+
+  /** Declined by signers */
+  DECLINED = 'declined',
+
+  /** Execution failed */
+  FAILED = 'failed',
+
+  /** Cancelled before execution */
+  CANCELED = 'canceled'
+}
+```
+
+### Usage
+
+```typescript
+import { TransactionStatus } from 'bakosafe';
+
+const details = await provider.service.getTransaction(hashTxId);
+
+switch (details.status) {
+  case TransactionStatus.AWAIT_REQUIREMENTS:
+    console.log('Waiting for signatures');
+    break;
+  case TransactionStatus.PENDING_SENDER:
+    console.log('Ready to send');
+    break;
+  case TransactionStatus.SUCCESS:
+    console.log('Transaction succeeded');
+    break;
+  case TransactionStatus.FAILED:
+    console.log('Transaction failed');
+    break;
+}
+```
+
+## SignatureType
+
+Type of signature encoding.
+
+```typescript
+enum SignatureType {
+  /** WebAuthn/Passkey signatures */
+  WebAuthn = 0,
+
+  /** Native Fuel wallet signatures */
+  Fuel = 1,
+
+  /** EVM wallet signatures */
+  Evm = 2,
+
+  /** Raw signatures without BAKO prefix */
+  RawNoPrefix = 9
+}
+```
+
+### Hex Values
+
+```typescript
+const SIGNATURE_TYPE_HEX = {
+  WebAuthn: '00000000',
+  Fuel: '00000001',
+  Evm: '00000002',
+  RawNoPrefix: '00000009'
+};
+```
+
+### Usage
+
+```typescript
+import { SignatureType } from 'bakosafe';
+
+const signatureInput = {
+  type: SignatureType.Fuel,
+  signature: rawSignature
+};
+```
+
+## WalletOrigin
+
+Supported wallet origin types for predicates.
+
+```typescript
+type WalletOrigin = 'fuel' | 'webauthn' | 'evm' | 'svm';
+```
+
+### Usage
+
+```typescript
+import { getCompatiblePredicateVersions } from 'bakosafe';
+
+// Get versions supporting EVM wallets
+const evmVersions = getCompatiblePredicateVersions('evm');
+
+// Get versions supporting Fuel wallets
+const fuelVersions = getCompatiblePredicateVersions('fuel');
+```
+
+## SortOption
+
+Sorting direction for list queries.
+
+```typescript
+enum SortOption {
+  /** Ascending order */
+  ASC = 'ASC',
+
+  /** Descending order */
+  DESC = 'DESC'
+}
+```
+
+### Usage
+
+```typescript
+import { SortOption } from 'bakosafe';
+
+const transactions = await provider.service.listTransactions({
+  status: [TransactionStatus.SUCCESS],
+  sort: SortOption.DESC,
+  perPage: 10
+});
+```
+
+## TransferInstanceError
+
+Error types for transfer operations.
+
+```typescript
+enum TransferInstanceError {
+  /** Missing authentication credentials */
+  REQUIRED_AUTH = 'Required credentials',
+
+  /** Invalid parameters provided */
+  INVALID_PARAMETER = 'Invalid instance parameters'
+}
+```
+
+### Usage
+
+```typescript
+import { TransferInstanceError } from 'bakosafe';
+
+try {
+  const { tx } = await vault.transaction(params);
+} catch (error) {
+  if (error.message === TransferInstanceError.REQUIRED_AUTH) {
+    console.error('Authentication required');
+  }
+}
+```
+
+## Bech32Prefix
+
+Address encoding prefixes.
+
+```typescript
+type Bech32Prefix = 'fuel' | 'pkau' | 'social';
+```
+
+| Prefix | Description |
+|--------|-------------|
+| `fuel` | Standard Fuel addresses |
+| `pkau` | Passkey/WebAuthn addresses |
+| `social` | Social login addresses |
+
+### Usage
+
+```typescript
+import { AddressUtils } from 'bakosafe';
+
+const bech32 = AddressUtils.toBech32(hexAddress, 'fuel');
+// fuel1qz...
+```
+
+## Next Steps
+
+- [Types & Interfaces](/sdk/reference/types)
+- [Changelog](/sdk/reference/changelog)

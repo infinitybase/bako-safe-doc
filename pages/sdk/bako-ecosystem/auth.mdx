@@ -6,30 +6,30 @@ In order to authenticate using a Fuel Wallet, first you need a [Fuel Wallet Ext
 import { Auth, TypeUser, IAuthCreateRequest, BakoSafe } from 'bakosafe'
 
 const params: IAuthCreateRequest = {
-  address: <YOUR_FUEL_WALLET_ADDRESS />, // fuels..dsai
+  address: 'your-fuel-wallet-address', // fuel1...
   provider: BakoSafe.getProviders('CHAIN_URL'), // https://beta-5.fuel.network/graphql for example
   type: TypeUser.FUEL, // TypeUser.FUEL
 }
 
 const auth = await Auth.create(params)
-//sign auth code using your fuel wallet, to create your session
-const wallet_sign = <YOUR_SIGNATURE_BY_FUEL_WALLET />
+// sign auth code using your fuel wallet, to create your session
+const wallet_sign = 'your-signature-from-fuel-wallet'
 await auth.sign(wallet_sign)
 
 //use your BakoSafeAuth on Auth to instance other services on BakoSafe
 console.log(auth.BakoSafeAuth)
 ```
 
-In this code snippet, `Auth.create` method is used to create a new instance of the Auth. It requires the wallet address (`fuels..dsai`) and the Provider URL (`https://beta-5.fuel.network/graphql`). You need to specify the type of user as `TypeUser.FUEL`. After this, sign your `Auth.code` using your Fuel Wallet, and send your signature using `auth.signerByAccount()` to create your session.
+In this code snippet, `Auth.create` method is used to create a new instance of the Auth. It requires the wallet address (`fuels..dsai`) and the Provider URL (`https://beta-5.fuel.network/graphql`). You need to specify the type of user as `TypeUser.FUEL`. After this, sign your `Auth.code` using your Fuel Wallet, and send your signature using `auth.sign()` to create your session.
 
 **Authentication Using a Private Key**
-You can also authenticate by using a Private Key as follows (exportada anteriormente)
+You can also authenticate by using a Private Key as follows:
 
 ```ts
 import { Auth, TypeUser, IAuthCreateRequest, BakoSafe } from "bakosafe"
 
-const YOUR_PRIVATE_KEY = <YOUR_PRIVATE_KEY>;
-const YOUR_ADDRESS = <YOUR_ADDRESS>;
+const YOUR_PRIVATE_KEY = 'your-private-key'
+const YOUR_ADDRESS = 'your-address'
 
 const params: IAuthCreateRequest = {
 	address: YOUR_ADDRESS, // fuels..dsai

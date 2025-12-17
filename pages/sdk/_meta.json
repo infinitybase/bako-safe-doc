@@ -1,9 +1,13 @@
 {
   "overview": "Overview",
-  "quick-start": "Quickstart",
-  "bako-standalone": "Bako Standalone",
-  "bako-ecosystem": "Bako Ecosystem (recommended)",
-  "safe-code": "Safe Code",
-  "setup": "Custom Setup",
+  "quick-start": "Quick Start",
+  "authentication": "Authentication",
+  "cli": "CLI & API Token",
+  "provider": "Provider",
+  "vault": "Vault",
+  "transactions": "Transactions",
+  "predicates": "Predicates",
+  "utilities": "Utilities",
+  "examples": "Examples",
   "reference": "Reference"
 }

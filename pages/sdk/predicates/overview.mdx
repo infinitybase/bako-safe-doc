@@ -1,0 +1,125 @@
+# Predicates Overview
+
+Predicates are the foundation of Bako Safe vaults. They are smart contracts on Fuel that define the rules for spending assets.
+
+## What are Predicates?
+
+In Fuel, a predicate is a stateless program that:
+- Returns `true` or `false` when evaluated
+- Controls whether a UTXO can be spent
+- Cannot modify state, only validate conditions
+
+Bako Safe uses predicates to implement multi-signature logic.
+
+## How Bako Predicates Work
+
+```
+┌─────────────────────────────────────┐
+│           Bako Predicate            │
+├─────────────────────────────────────┤
+│  Inputs:                            │
+│  - Transaction data                 │
+│  - Signatures (witnesses)           │
+│                                     │
+│  Validation:                        │
+│  1. Count valid signatures          │
+│  2. Verify signers are authorized   │
+│  3. Check threshold is met          │
+│                                     │
+│  Output: true/false                 │
+└─────────────────────────────────────┘
+```
+
+## Predicate Versions
+
+The SDK includes multiple predicate versions to support different wallet types and features:
+
+| Version | Features | Wallet Support |
+|---------|----------|----------------|
+| v1 | Basic multi-sig | Fuel |
+| v2 | WebAuthn support | Fuel, WebAuthn |
+| v3 | EVM signatures | Fuel, WebAuthn, EVM |
+
+## Loading Predicates
+
+### Get Latest Version
+
+```typescript
+import { getLatestPredicateVersion } from 'bakosafe';
+
+// Get latest for specific wallet type
+const version = await getLatestPredicateVersion('fuel');
+```
+
+### Load Specific Version
+
+```typescript
+import { loadPredicate } from 'bakosafe';
+
+// Load specific version
+const predicate = await loadPredicate(provider, 'version-hash');
+
+// Load latest compatible
+const predicate = await loadPredicate(provider);
+```
+
+### Get All Versions
+
+```typescript
+import { getAllPredicateVersions, getAllVersionsDetails } from 'bakosafe';
+
+// Get version IDs
+const versions = getAllPredicateVersions();
+
+// Get detailed info (without bytecode)
+const details = getAllVersionsDetails();
+```
+
+## Predicate Structure
+
+Each predicate version contains:
+
+```typescript
+interface PredicateVersion {
+  id: string;          // Unique identifier (hash)
+  name?: string;       // Human-readable name
+  description?: string;
+  bytes: string;       // Compiled bytecode
+  abi: string;         // ABI JSON
+  active: boolean;     // Is version active
+  walletOrigins: string[];  // Supported wallet types
+  deployed: {
+    testnet: boolean;
+    mainnet: boolean;
+  };
+}
+```
+
+## Version Compatibility
+
+Check if a configuration works with a version:
+
+```typescript
+import { VaultFactory } from 'bakosafe';
+
+const isCompatible = VaultFactory.isConfigurationCompatible(
+  config,
+  versionHash
+);
+```
+
+## Wallet Origins
+
+Different predicates support different wallet types:
+
+| Origin | Description |
+|--------|-------------|
+| `fuel` | Native Fuel wallets |
+| `webauthn` | Passkey/biometric authentication |
+| `evm` | Ethereum-compatible wallets |
+| `svm` | Solana-compatible wallets |
+
+## Next Steps
+
+- [Version Details](/sdk/predicates/versions)
+- [Wallet Type Support](/sdk/predicates/wallet-types)

@@ -1,0 +1,175 @@
+# Provider Setup
+
+Learn how to configure and initialize BakoProvider for different use cases.
+
+## Quick Setup
+
+### API Token (Simplest)
+
+```typescript
+import { BakoProvider } from 'bakosafe';
+
+const provider = await BakoProvider.create(
+  'https://mainnet.fuel.network/v1/graphql',
+  { apiToken: process.env.BAKO_API_TOKEN }
+);
+```
+
+### Interactive Authentication
+
+```typescript
+import { BakoProvider, TypeUser } from 'bakosafe';
+
+// Generate challenge
+const auth = await BakoProvider.setup({
+  address: '0x...',
+  provider: 'https://mainnet.fuel.network/v1/graphql',
+  encoder: TypeUser.FUEL
+});
+
+// Sign and authenticate
+const signature = await wallet.signMessage(auth.code);
+
+const provider = await BakoProvider.authenticate({
+  challenge: auth.code,
+  signature,
+  encoder: TypeUser.FUEL,
+  address: '0x...',
+  serverUrl: 'https://api.bako.global'
+});
+```
+
+## Setup Parameters
+
+### BakoProviderSetup
+
+```typescript
+interface BakoProviderSetup {
+  address: string;       // User's wallet address
+  provider: string;      // Fuel network URL
+  encoder?: TypeUser;    // Authentication type (default: FUEL)
+  name?: string;         // Optional session name
+  serverApi?: string;    // Custom Bako API URL
+}
+```
+
+### TypeUser Options
+
+| Value | Description |
+|-------|-------------|
+| `TypeUser.FUEL` | Fuel native wallets |
+| `TypeUser.WEB_AUTHN` | WebAuthn/Passkeys |
+| `TypeUser.EVM` | Ethereum wallets |
+| `TypeUser.SOCIAL` | Social login |
+
+## Setup Response
+
+The `setup()` method returns:
+
+```typescript
+interface BakoProviderAuth {
+  code: string;          // Challenge to sign
+  token: string;         // Temporary token
+  encoder?: TypeUser;    // Encoder used
+}
+```
+
+## Authentication Parameters
+
+### BakoProviderAuthOptions
+
+```typescript
+interface BakoProviderAuthOptions extends BakoProviderOptions {
+  challenge: string;     // Challenge from setup
+  encoder?: TypeUser;    // Must match setup encoder
+  serverUrl?: string;    // Bako API URL
+}
+```
+
+## Custom Server Configuration
+
+For self-hosted or custom Bako API instances:
+
+```typescript
+const provider = await BakoProvider.create(
+  'https://mainnet.fuel.network/v1/graphql',
+  {
+    apiToken: process.env.BAKO_API_TOKEN,
+    serverApi: 'https://your-custom-api.com'
+  }
+);
+```
+
+## Environment-Based Setup
+
+```typescript
+import { BakoProvider } from 'bakosafe';
+
+function getProviderConfig() {
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  return {
+    networkUrl: isProduction
+      ? 'https://mainnet.fuel.network/v1/graphql'
+      : 'https://testnet.fuel.network/v1/graphql',
+    serverApi: isProduction
+      ? 'https://api.bako.global'
+      : 'https://api-testnet.bako.global'
+  };
+}
+
+async function createProvider() {
+  const config = getProviderConfig();
+
+  return BakoProvider.create(config.networkUrl, {
+    apiToken: process.env.BAKO_API_TOKEN,
+    serverApi: config.serverApi
+  });
+}
+```
+
+## Error Handling
+
+```typescript
+import { BakoProvider } from 'bakosafe';
+
+async function safeSetup() {
+  try {
+    const provider = await BakoProvider.create(
+      process.env.NETWORK_URL,
+      { apiToken: process.env.BAKO_API_TOKEN }
+    );
+    return provider;
+  } catch (error) {
+    if (error.code === 'NETWORK_ERROR') {
+      console.error('Cannot connect to Fuel network');
+    } else if (error.response?.status === 401) {
+      console.error('Invalid API token');
+    } else {
+      console.error('Setup failed:', error.message);
+    }
+    throw error;
+  }
+}
+```
+
+## Reusing Provider
+
+The provider can be reused across multiple operations:
+
+```typescript
+// Create once
+const provider = await BakoProvider.create(networkUrl, options);
+
+// Use multiple times
+const vault1 = await Vault.fromAddress(address1, provider);
+const vault2 = await Vault.fromAddress(address2, provider);
+
+// Access services
+const workspaces = await provider.getWorkspaces();
+```
+
+## Next Steps
+
+- [Provider Methods](/sdk/provider/methods)
+- [Provider Services](/sdk/provider/services)

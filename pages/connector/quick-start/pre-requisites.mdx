@@ -1,3 +1,65 @@
-- A dApp to interact with Bako Safe. You can use this [example application](https://github.com/infinitybase/bako-safe-dapp) as an starting point.
-- [Fuel Wallet Extension](https://chromewebstore.google.com/detail/fuel-wallet/dldjpboieedgcmpkchcjcbijingjcgok) installed in your browser
-- An account and a vault created in the [Bako Safe](https://safe.bako.global/)
+# Prerequisites
+
+Before integrating the Bako Safe Connector, ensure you have:
+
+## Required
+
+### Development Environment
+
+- Node.js 18+ installed
+- npm or yarn package manager
+- React 18+ application (or compatible framework)
+
+### Bako Safe Account
+
+- An account created at [Bako Safe](https://safe.bako.global/)
+- At least one vault created with your account as a signer
+
+### Fuel Wallet
+
+- [Fuel Wallet Extension](https://chromewebstore.google.com/detail/fuel-wallet/dldjpboieedgcmpkchcjcbijingjcgok) installed in your browser
+- Wallet connected to the same network as your vault (Testnet or Mainnet)
+
+## Dependencies
+
+Your project will need these packages:
+
+```bash
+npm install bakosafe fuels @fuels/connectors @fuels/react
+```
+
+| Package | Purpose |
+|---------|---------|
+| `bakosafe` | Bako Safe SDK with BSafeConnector |
+| `fuels` | Fuel TypeScript SDK |
+| `@fuels/connectors` | Fuel wallet connectors |
+| `@fuels/react` | React hooks for Fuel |
+
+## Network Configuration
+
+### Testnet
+
+```
+URL: https://testnet.fuel.network/v1/graphql
+```
+
+### Mainnet
+
+```
+URL: https://mainnet.fuel.network/v1/graphql
+```
+
+## Verification Checklist
+
+Before proceeding:
+
+- [ ] Node.js 18+ installed
+- [ ] React application created
+- [ ] Fuel Wallet extension installed
+- [ ] Bako Safe account created
+- [ ] At least one vault created
+- [ ] Wallet and vault on same network
+
+## Next Steps
+
+Once prerequisites are met, proceed to [Installation](/connector/quick-start/installation).

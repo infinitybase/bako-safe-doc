@@ -1,0 +1,208 @@
+# Creating Vaults
+
+Learn how to create new multi-signature vaults using the Bako Safe SDK.
+
+## Prerequisites
+
+- Authenticated `BakoProvider` instance
+- List of signer addresses
+- Desired signature threshold
+
+## Creating a BAKO Vault
+
+### Using VaultFactory
+
+```typescript
+import { BakoProvider, Vault, VaultFactory } from 'bakosafe';
+
+const provider = await BakoProvider.create(networkUrl, { apiToken });
+
+const vault = VaultFactory.createBakoVault(
+  provider,
+  {
+    SIGNATURES_COUNT: 2,
+    SIGNERS: [
+      'fuel1signer1...',
+      'fuel1signer2...',
+      'fuel1signer3...'
+    ]
+  }
+);
+
+// Save to Bako ecosystem
+await vault.save({
+  name: 'Treasury Vault',
+  description: 'Company treasury requiring 2-of-3 approval'
+});
+
+console.log('Vault address:', vault.address.toString());
+```
+
+### Using Static Method
+
+```typescript
+import { Vault } from 'bakosafe';
+
+const vault = Vault.createBakoVault(
+  provider,
+  {
+    SIGNATURES_COUNT: 2,
+    SIGNERS: [signer1, signer2, signer3]
+  },
+  version // optional: specific predicate version
+);
+```
+
+## Creating a CONNECTOR Vault
+
+For single-signer use with dApp connections:
+
+```typescript
+import { Vault } from 'bakosafe';
+
+const vault = Vault.createConnectorVault(
+  provider,
+  {
+    SIGNER: 'fuel1single-signer...'
+  }
+);
+```
+
+## Creating from Provider
+
+When using API token authentication, create a vault from provider credentials:
+
+```typescript
+const provider = await BakoProvider.create(networkUrl, { apiToken });
+
+// Uses credentials from cliAuth
+const vault = Vault.createFromProvider(provider);
+```
+
+## Configuration Options
+
+### BakoConfigurableType
+
+```typescript
+interface BakoConfigurableType {
+  SIGNATURES_COUNT: number;  // Required signatures
+  SIGNERS: string[];         // Array of signer addresses
+  HASH_PREDICATE?: string;   // Optional predicate hash
+}
+```
+
+### ConnectorConfigurableType
+
+```typescript
+interface ConnectorConfigurableType {
+  SIGNER: string;  // Single signer address
+}
+```
+
+## Specifying Predicate Version
+
+Use a specific predicate version for compatibility:
+
+```typescript
+import { Vault, getLatestPredicateVersion } from 'bakosafe';
+
+// Get latest version for wallet type
+const version = await getLatestPredicateVersion('fuel');
+
+const vault = Vault.createBakoVault(
+  provider,
+  config,
+  version
+);
+```
+
+## Saving Vault to Ecosystem
+
+After creating a vault, save it to the Bako ecosystem:
+
+```typescript
+const vault = Vault.createBakoVault(provider, config);
+
+const response = await vault.save({
+  name: 'My Vault',
+  description: 'Optional description'
+});
+
+console.log('Saved with ID:', response.id);
+```
+
+## Full Example
+
+```typescript
+import { BakoProvider, Vault, VaultFactory } from 'bakosafe';
+
+async function createMultisigVault() {
+  // 1. Authenticate
+  const provider = await BakoProvider.create(
+    'https://mainnet.fuel.network/v1/graphql',
+    { apiToken: process.env.BAKO_API_TOKEN }
+  );
+
+  // 2. Define signers (can be Fuel, EVM, or WebAuthn addresses)
+  const signers = [
+    process.env.SIGNER_1,
+    process.env.SIGNER_2,
+    process.env.SIGNER_3
+  ];
+
+  // 3. Create 2-of-3 multisig vault
+  const vault = VaultFactory.createBakoVault(
+    provider,
+    {
+      SIGNATURES_COUNT: 2,
+      SIGNERS: signers
+    }
+  );
+
+  // 4. Save to ecosystem
+  await vault.save({
+    name: 'Team Treasury',
+    description: 'Requires 2 of 3 team members to approve'
+  });
+
+  console.log('Vault created successfully!');
+  console.log('Address:', vault.address.toString());
+  console.log('Signers:', signers.length);
+  console.log('Threshold: 2 of 3');
+
+  return vault;
+}
+
+createMultisigVault().catch(console.error);
+```
+
+## Error Handling
+
+```typescript
+try {
+  const vault = Vault.createBakoVault(provider, config);
+  await vault.save({ name: 'My Vault' });
+} catch (error) {
+  if (error.message.includes('SIGNATURES_COUNT')) {
+    console.error('Threshold must be <= number of signers');
+  } else if (error.message.includes('SIGNERS')) {
+    console.error('Invalid signer addresses');
+  } else {
+    console.error('Failed to create vault:', error.message);
+  }
+}
+```
+
+## Best Practices
+
+1. **Use descriptive names**: Makes vaults easy to identify
+2. **Document threshold rationale**: Why 2-of-3 vs 3-of-5?
+3. **Verify signer addresses**: Double-check before creating
+4. **Test on testnet first**: Validate configuration before mainnet
+5. **Keep signers diverse**: Different wallet types, different custodians
+
+## Next Steps
+
+- [Recovering Vaults](/sdk/vault/recovering)
+- [Configuration Details](/sdk/vault/configuration)
+- [Creating Transactions](/sdk/transactions/creating)

@@ -1,0 +1,157 @@
+# Changelog
+
+Recent changes and updates to the Bako Safe SDK.
+
+## Latest Updates
+
+### SDK Improvements
+
+- **BakoProvider**: Unified authentication entry point
+- **API Token Support**: CLI and server-side authentication
+- **Multi-wallet Support**: Fuel, EVM, WebAuthn, and SVM signatures
+
+### Predicate Versions
+
+#### v3 - EVM Support
+```
+ID: 0x967aaa71b3db34acd8104ed1d7ff3900e67cff3d153a0ffa86d85957f579aa6a
+Wallet Origins: fuel, webauthn, evm
+Toolchain: Fuels 0.101.1, Forc 0.68.1
+```
+
+Features:
+- EVM signature verification
+- MetaMask and other EVM wallet support
+- Cross-chain signer compatibility
+
+#### v2 - Updated Multi-sig
+```
+ID: 0x6ca3bcd759b944b128e9007e2fa75bf700f28c39ce7b34fc241e2c57bf02bdff
+Wallet Origins: fuel, webauthn
+Toolchain: Fuels 0.99.0, Forc 0.66.6
+```
+
+Features:
+- Improved signature handling
+- Updated toolchain compatibility
+
+#### v1 - Initial Multi-sig
+```
+ID: 0x0ec304f98efc18964de98c63be50d2360572a155b16bcb0f3718c685c70a00aa
+Wallet Origins: fuel, webauthn
+Toolchain: Fuels 0.96.1, Forc 0.65.2
+```
+
+Features:
+- Multi-signature vault support
+- WebAuthn/Passkey authentication
+
+### Breaking Changes
+
+#### Authentication API
+
+**Before (deprecated):**
+```typescript
+// Old API - no longer works
+const auth = await Auth.create(address, provider, type);
+const signed = await auth.signerByPk(privateKey);
+```
+
+**After (current):**
+```typescript
+// Current API
+const provider = await BakoProvider.create(url, { apiToken });
+// or
+const provider = await BakoProvider.setup({ address });
+await provider.authenticate(signature);
+```
+
+#### Vault Creation
+
+**Before:**
+```typescript
+// Old API
+const vault = new Vault({
+  configurable: { ... },
+  BakoSafeAuth: auth
+});
+```
+
+**After:**
+```typescript
+// Current API
+const vault = Vault.createBakoVault(
+  provider,
+  { SIGNATURES_COUNT: 2, SIGNERS: [...] },
+  version
+);
+```
+
+#### Transaction Methods
+
+**Before:**
+```typescript
+// Old API
+const transfer = await vault.BakoSafeIncludeTransaction(params);
+```
+
+**After:**
+```typescript
+// Current API
+const { tx, hashTxId } = await vault.transaction(params);
+```
+
+## Migration Guide
+
+### From v1.x to Current
+
+1. **Replace Auth class with BakoProvider**
+
+```typescript
+// Old
+const auth = await Auth.create(address, provider, TypeUser.FUEL);
+
+// New
+const provider = await BakoProvider.setup({ address });
+```
+
+2. **Update vault creation**
+
+```typescript
+// Old
+const vault = new Vault({ configurable, BakoSafeAuth });
+
+// New
+const vault = Vault.createBakoVault(provider, configurable);
+```
+
+3. **Update transaction methods**
+
+```typescript
+// Old
+vault.BakoSafeIncludeTransaction(params);
+
+// New
+vault.transaction(params);
+```
+
+4. **Use API tokens for CLI**
+
+```typescript
+// New feature
+const provider = await BakoProvider.create(url, {
+  apiToken: process.env.BAKO_API_TOKEN
+});
+```
+
+## Compatibility
+
+| SDK Version | Fuel SDK | Network |
+|-------------|----------|---------|
+| Latest | 0.101.x | Mainnet, Testnet |
+
+## Resources
+
+- [GitHub Repository](https://github.com/Bako-Labs/bako-safe)
+- [Example Repository](https://github.com/guimroque/bako-wallet-snippet)
+- [Fuel Network Docs](https://docs.fuel.network)

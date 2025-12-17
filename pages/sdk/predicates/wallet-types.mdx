@@ -1,0 +1,163 @@
+# Wallet Type Support
+
+Different predicate versions support different wallet types for signing transactions.
+
+## Supported Wallet Types
+
+| Type | Code | Description |
+|------|------|-------------|
+| Fuel | `fuel` | Native Fuel blockchain wallets |
+| WebAuthn | `webauthn` | Passkey/biometric authentication |
+| EVM | `evm` | Ethereum-compatible wallets |
+| SVM | `svm` | Solana-compatible wallets |
+
+## Compatibility Matrix
+
+| Predicate Version | Fuel | WebAuthn | EVM | SVM |
+|-------------------|------|----------|-----|-----|
+| Bako v1 | Yes | Yes | No | No |
+| Bako v2 | Yes | Yes | No | No |
+| Bako v3 | Yes | Yes | Yes | No |
+| Fuel SVM | No | No | No | Yes |
+| Fuel EVM | No | No | Yes | No |
+
+## Finding Compatible Versions
+
+### For Specific Wallet Type
+
+```typescript
+import { getCompatiblePredicateVersions } from 'bakosafe';
+
+// Get versions that support EVM wallets
+const evmVersions = getCompatiblePredicateVersions('evm');
+
+// Get versions that support Fuel wallets
+const fuelVersions = getCompatiblePredicateVersions('fuel');
+
+// Get versions that support WebAuthn
+const webauthnVersions = getCompatiblePredicateVersions('webauthn');
+```
+
+### Get Latest for Wallet Type
+
+```typescript
+import { getLatestPredicateVersion } from 'bakosafe';
+
+const latestForFuel = await getLatestPredicateVersion('fuel');
+const latestForEvm = await getLatestPredicateVersion('evm');
+```
+
+## Mixed Wallet Vaults
+
+Create vaults with signers using different wallet types:
+
+```typescript
+import { Vault, getCompatiblePredicateVersions } from 'bakosafe';
+
+// Find version that supports both Fuel and EVM
+const versions = getCompatiblePredicateVersions('evm');
+const fuelVersions = getCompatiblePredicateVersions('fuel');
+
+const compatibleVersion = versions.find(v => fuelVersions.includes(v));
+
+// Create vault with mixed signers
+const vault = Vault.createBakoVault(
+  provider,
+  {
+    SIGNATURES_COUNT: 2,
+    SIGNERS: [
+      'fuel1native-wallet...',    // Fuel wallet
+      '0x742d35Cc6634...',        // EVM wallet (MetaMask)
+    ]
+  },
+  compatibleVersion
+);
+```
+
+## Signature Types by Wallet
+
+Each wallet type uses a different signature encoding:
+
+```typescript
+import { SignatureType } from 'bakosafe';
+
+enum SignatureType {
+  WebAuthn = 0,      // Passkey signatures
+  Fuel = 1,          // Fuel wallet signatures
+  Evm = 2,           // EVM wallet signatures
+  RawNoPrefix = 9    // Raw signatures (special cases)
+}
+```
+
+## Address Formats
+
+| Wallet Type | Address Format | Example |
+|-------------|----------------|---------|
+| Fuel | Bech32 | `fuel1qz...` |
+| EVM | Hex (0x) | `0x742d35Cc6634...` |
+| WebAuthn | Bech32 (passkey prefix) | `pkau1qz...` |
+
+## Address Utilities
+
+```typescript
+import { AddressUtils } from 'bakosafe';
+
+// Check address type
+const isFuel = address.startsWith('fuel1');
+const isEvm = AddressUtils.isEvm(address);
+const isPasskey = AddressUtils.isPasskey(address);
+
+// Convert formats
+const evmAddress = AddressUtils.parseFuelAddressToEth(fuelAddress);
+const bech32 = AddressUtils.toBech32(hexAddress, 'fuel');
+```
+
+## Choosing the Right Version
+
+### For Maximum Compatibility
+
+Use a version that supports all wallet types your signers use:
+
+```typescript
+function findCompatibleVersion(signerTypes: string[]): string {
+  const allVersions = getAllPredicateVersions();
+
+  for (const version of allVersions) {
+    const details = getVersionDetails(version);
+    const supportsAll = signerTypes.every(
+      type => details.walletOrigins.includes(type)
+    );
+
+    if (supportsAll && details.active) {
+      return version;
+    }
+  }
+
+  throw new Error('No compatible version found');
+}
+
+// Usage
+const version = findCompatibleVersion(['fuel', 'evm']);
+```
+
+### For Specific Features
+
+```typescript
+// Need EVM support
+const version = await getLatestPredicateVersion('evm');
+
+// Need WebAuthn for passwordless
+const version = await getLatestPredicateVersion('webauthn');
+```
+
+## Best Practices
+
+1. **Use latest versions**: They have the most features and security fixes
+2. **Check compatibility first**: Ensure version supports all your signers' wallet types
+3. **Plan for upgrades**: New versions may add features you need
+4. **Test on testnet**: Verify compatibility before mainnet deployment
+
+## Next Steps
+
+- [Creating Vaults](/sdk/vault/creating)
+- [Authentication Methods](/sdk/authentication/overview)

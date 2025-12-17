@@ -1,0 +1,156 @@
+# WebAuthn Authentication
+
+Authenticate using WebAuthn (Passkeys) for passwordless, biometric-based authentication.
+
+## What is WebAuthn?
+
+WebAuthn enables secure, passwordless authentication using:
+- Fingerprint sensors
+- Face recognition
+- Hardware security keys (YubiKey, etc.)
+
+## Prerequisites
+
+- Browser with WebAuthn support (all modern browsers)
+- Device with biometric capability or hardware security key
+
+## Creating an Account with Passkey
+
+```typescript
+import { createAccount } from 'bakosafe';
+
+async function createPasskeyAccount(username: string) {
+  const challenge = crypto.randomUUID(); // Generate unique challenge
+
+  const account = await createAccount(username, challenge);
+
+  // account contains:
+  // - id: credential ID
+  // - publicKey: public key for verification
+  // - address: derived Fuel address
+  // - authenticatorData: WebAuthn authenticator data
+  // - clientData: client data JSON
+  // - credential: raw credential
+
+  return account;
+}
+```
+
+## Signing a Challenge with Passkey
+
+```typescript
+import { signChallange, parseSignChallangeResponse } from 'bakosafe';
+
+async function signWithPasskey(
+  credentialId: string,
+  challenge: string,
+  publicKey: string
+) {
+  // Request signature from user's passkey
+  const response = await signChallange(credentialId, challenge, publicKey);
+
+  // Parse the response for use with Bako
+  const parsed = await parseSignChallangeResponse(
+    publicKey,
+    challenge,
+    response
+  );
+
+  // parsed contains:
+  // - sig: signature
+  // - digest: signed digest
+  // - prefix: client data prefix
+  // - suffix: client data suffix
+  // - authData: authenticator data
+
+  return parsed;
+}
+```
+
+## Full Authentication Flow
+
+```typescript
+import { BakoProvider, TypeUser, signChallange } from 'bakosafe';
+
+async function authenticateWithWebAuthn(
+  credentialId: string,
+  publicKey: string,
+  address: string
+) {
+  // Step 1: Setup authentication
+  const { code } = await BakoProvider.setup({
+    address,
+    provider: 'https://mainnet.fuel.network/v1/graphql',
+    encoder: TypeUser.WEB_AUTHN
+  });
+
+  // Step 2: Sign with passkey
+  const signResponse = await signChallange(credentialId, code, publicKey);
+
+  // Step 3: Authenticate
+  const provider = await BakoProvider.authenticate({
+    challenge: code,
+    signature: signResponse.signature,
+    encoder: TypeUser.WEB_AUTHN,
+    address,
+    serverUrl: 'https://api.bako.global'
+  });
+
+  return provider;
+}
+```
+
+## WebAuthn Utilities
+
+The SDK provides several utilities for WebAuthn:
+
+### splitClientData
+
+Parse client data to extract challenge prefix and suffix:
+
+```typescript
+import { splitCLientData } from 'bakosafe';
+
+const { prefix, suffix } = splitCLientData(
+  clientDataJSON,
+  challengeBytes
+);
+```
+
+### formatToWebAuthnCreate
+
+Format authenticator response for account creation:
+
+```typescript
+import { formatToWebAuthnCreate } from 'bakosafe';
+
+const { sig, digest } = await formatToWebAuthnCreate({
+  authenticatorData,
+  clientDataJSON,
+  signature,
+  publicKey
+});
+```
+
+## Browser Compatibility
+
+| Browser | Support |
+|---------|---------|
+| Chrome 67+ | Full |
+| Firefox 60+ | Full |
+| Safari 13+ | Full |
+| Edge 79+ | Full |
+| Mobile Safari | Full |
+| Chrome Android | Full |
+
+## Security Considerations
+
+- Passkeys are phishing-resistant
+- Private keys never leave the device
+- Biometric data is processed locally
+- Each credential is bound to a specific origin
+
+## Next Steps
+
+- [Fuel Wallet Authentication](/sdk/authentication/fuel-wallet)
+- [EVM Wallet Authentication](/sdk/authentication/evm-wallet)

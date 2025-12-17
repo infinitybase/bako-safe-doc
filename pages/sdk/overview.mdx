@@ -1,8 +1,70 @@
-The Bako Safe SDK manages all the logic of the Bako Safe multisig wallet, including:
+# Bako Safe SDK
 
-1. **Blockchain Network Integration**: Simplifying interactions with blockchain networks and managing network providers.
-2. **Authentication and Security**: Implementing secure authentication methods and security protocols.
-3. **Vault Creation and Management**: Setting up and configuring secure vaults for crypto assets.
-4. **Signer Registration and Management**: Adding and removing signers, and managing their signatures for transaction authorization.
-5. **Transaction Management**: Initiating, signing, approving, and executing transactions.
-6. **Utility and Helper Functions**: Providing error handling and SDK customization options.
+The Bako Safe SDK is a TypeScript library for building multi-signature wallet applications on the [Fuel Network](https://fuel.network). It provides a complete suite of tools for vault management, transaction handling, and secure authentication.
+
+## Key Features
+
+- **Multi-signature Vaults**: Create and manage vaults requiring multiple signatures for transaction approval
+- **Multiple Authentication Methods**: Support for Fuel Wallet, WebAuthn (Passkeys), EVM wallets, and API tokens
+- **Transaction Management**: Full lifecycle management from creation to execution
+- **Predicate-based Security**: Built on Fuel's predicate system for maximum security
+- **CLI Support**: Programmatic access via API tokens for automation and CI/CD
+
+## Architecture
+
+The SDK is organized into the following modules:
+
+| Module | Description |
+|--------|-------------|
+| **Provider** | `BakoProvider` - Main entry point for authentication and API communication |
+| **Vault** | Vault creation, configuration, and management |
+| **Transactions** | Transaction creation, signing, and sending |
+| **WebAuthn** | Passkey-based authentication utilities |
+| **Coders** | Signature encoding for different wallet types |
+| **Address** | Address conversion and validation utilities |
+
+## Supported Wallet Types
+
+| Type | Description |
+|------|-------------|
+| `FUEL` | Native Fuel wallets (Fuel Wallet, Fuelet) |
+| `WEB_AUTHN` | WebAuthn/Passkey authentication |
+| `EVM` | Ethereum-compatible wallets (MetaMask, etc.) |
+
+## Installation
+
+```bash
+npm install bakosafe fuels
+```
+
+## Quick Example
+
+```typescript
+import { BakoProvider, Vault } from 'bakosafe';
+
+// Authenticate with API token
+const provider = await BakoProvider.create(
+  'https://mainnet.fuel.network/v1/graphql',
+  { apiToken: 'your-api-token' }
+);
+
+// Create or recover a vault
+const vault = await Vault.fromAddress('your-vault-address', provider);
+
+// Create a transaction
+const { tx, hashTxId } = await vault.transaction({
+  name: 'My Transfer',
+  assets: [{
+    assetId: '0x...',
+    amount: '1000000',
+    to: 'recipient-address'
+  }]
+});
+```
+
+## Resources
+
+- [GitHub Repository](https://github.com/Bako-Labs/bako-safe)
+- [Bako Safe App](https://safe.bako.global)
+- [Example Repository](https://github.com/guimroque/bako-wallet-snippet)
+- [Fuel Network Docs](https://docs.fuel.network)

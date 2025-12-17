@@ -1,5 +1,5 @@
 {
-  "auth": "Authentication",
-  "vault": "Vault",
-  "transaction": "Transaction"
+  "types": "Types & Interfaces",
+  "enums": "Enums",
+  "changelog": "Changelog"
 }

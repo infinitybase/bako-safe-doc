@@ -1,33 +1,137 @@
-import { Card, Cards } from 'nextra/components'
-import Image from 'next/image'
+# Quick Start
 
-### Prerequisites
+Get started with Bako Safe SDK in minutes.
 
-- Node.js installed on your machine.
-- A TypeScript project set up where Bako Safe SDK will be installed.
+## Prerequisites
 
-It is recommended to familiarize yourself with the following:
+- Node.js 18+ installed
+- A Fuel wallet or API token from [Bako Safe](https://safe.bako.global)
 
-- [Rust](https://www.rust-lang.org/tools/install)
-- [Fuelup: Fuel Toolchain](https://github.com/FuelLabs/fuelup)
+## Installation
 
-### Installation
+Install the SDK and Fuel dependencies:
 
-Install Bako Safe SDK in your TypeScript project.
-
-```
-npm install bakosafe@0.0.49
+```bash
+npm install bakosafe fuels
 ```
 
-It is necessary to install [Fuels TS](https://github.com/fuelLabs/fuels-ts) in the project
+Or with other package managers:
 
+```bash
+# yarn
+yarn add bakosafe fuels
+
+# pnpm
+pnpm add bakosafe fuels
 ```
-npm install fuels@0.74.0
+
+## Authentication Options
+
+The SDK supports two main authentication flows:
+
+### Option 1: API Token (Recommended for CLI/Scripts)
+
+Best for automation, CI/CD pipelines, and server-side applications.
+
+```typescript
+import { BakoProvider, Vault } from 'bakosafe';
+
+const provider = await BakoProvider.create(
+  'https://mainnet.fuel.network/v1/graphql',
+  {
+    apiToken: process.env.BAKO_API_TOKEN
+  }
+);
+
+// Create vault from provider credentials
+const vault = Vault.createFromProvider(provider);
 ```
 
-There are two methods for authentication and managing vaults: the **[Standalone](https://www.notion.so/Doc-Bako-Safe-b7f321072c434bac863b63a174667428?pvs=21)** method and the **[Bako Ecosystem](https://www.notion.so/Doc-Bako-Safe-b7f321072c434bac863b63a174667428?pvs=21)** method:
+### Option 2: Interactive Authentication
 
-<Image src='/images/BAKO_SDK_FLUXOGRAM.png' alt='BSafe sdk ecossystem' width={930} height={500} />
+Best for browser-based applications with user interaction.
 
-- **[Bako Safe Ecosystem](https://www.notion.so/Doc-Bako-Safe-b7f321072c434bac863b63a174667428?pvs=21)**: This platform enables seamless management of your Vault within our app. You can view signatories, transactions, and balances, etc... and allows to use your Vault in other DApps via Wallet Connector.
-- **[Standalone](https://www.notion.so/Doc-Bako-Safe-b7f321072c434bac863b63a174667428?pvs=21)**: This implies that the application or system is able to function independently. In the case of Bako Safe, using it in a standalone mode refers to managing the Multisig Wallet or the Vault on your own.
+```typescript
+import { BakoProvider } from 'bakosafe';
+
+// Step 1: Setup - generates a challenge
+const { code } = await BakoProvider.setup({
+  address: userWalletAddress,
+  provider: 'https://mainnet.fuel.network/v1/graphql',
+  encoder: 'FUEL' // or 'WEB_AUTHN', 'EVM'
+});
+
+// Step 2: User signs the challenge with their wallet
+const signature = await userWallet.signMessage(code);
+
+// Step 3: Authenticate with the signature
+const provider = await BakoProvider.authenticate({
+  challenge: code,
+  signature,
+  encoder: 'FUEL',
+  address: userWalletAddress,
+  serverUrl: 'https://api.bako.global'
+});
+```
+
+## Creating Your First Transaction
+
+Once authenticated, you can create and send transactions:
+
+```typescript
+import { BakoProvider, Vault } from 'bakosafe';
+
+async function main() {
+  // 1. Authenticate
+  const provider = await BakoProvider.create(
+    'https://mainnet.fuel.network/v1/graphql',
+    { apiToken: process.env.BAKO_API_TOKEN }
+  );
+
+  // 2. Get your vault
+  const vault = await Vault.fromAddress(
+    process.env.VAULT_ADDRESS,
+    provider
+  );
+
+  // 3. Create a transfer transaction
+  const { tx, hashTxId } = await vault.transaction({
+    name: 'My First Transfer',
+    assets: [{
+      assetId: '0xf8f8b6283d7fa5b672b530cbb84fcccb4ff8dc40f8176ef4544ddb1f1952ad07', // ETH
+      amount: '100000', // in base units
+      to: 'fuel1recipient...'
+    }]
+  });
+
+  console.log('Transaction created:', hashTxId);
+  console.log('Waiting for signatures at https://safe.bako.global');
+
+  // 4. Send when all signatures are collected
+  const result = await vault.send(tx);
+  console.log('Transaction sent:', result.id);
+}
+
+main();
+```
+
+## Environment Setup
+
+Create a `.env` file with your credentials:
+
+```env
+# Network
+NETWORK_URL=https://mainnet.fuel.network/v1/graphql
+
+# Bako Safe
+BAKO_API_TOKEN=your-api-token-here
+VAULT_ADDRESS=your-vault-address-here
+```
+
+## Next Steps
+
+- [Authentication Methods](/sdk/authentication/overview) - Learn about all authentication options
+- [CLI & API Token](/sdk/cli/overview) - Set up programmatic access
+- [Vault Management](/sdk/vault/overview) - Create and configure vaults
+- [Transactions](/sdk/transactions/overview) - Deep dive into transaction handling
+- [Examples](/sdk/examples/overview) - Complete working examples

@@ -1,0 +1,220 @@
+# Creating Transactions
+
+Learn how to create transactions for multi-signature approval.
+
+## Basic Transfer
+
+```typescript
+import { BakoProvider, Vault } from 'bakosafe';
+
+const provider = await BakoProvider.create(networkUrl, { apiToken });
+const vault = await Vault.fromAddress(vaultAddress, provider);
+
+const { tx, hashTxId, encodedTxId } = await vault.transaction({
+  name: 'Simple Transfer',
+  assets: [{
+    assetId: '0xf8f8b6283d7fa5b672b530cbb84fcccb4ff8dc40f8176ef4544ddb1f1952ad07',
+    amount: '1000000', // Amount in base units
+    to: 'fuel1recipient...'
+  }]
+});
+
+console.log('Transaction hash:', hashTxId);
+```
+
+## Return Values
+
+The `transaction()` method returns:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `tx` | `TransactionRequest` | The transaction request object |
+| `hashTxId` | `string` | Transaction hash for tracking |
+| `encodedTxId` | `string` | Encoded transaction ID |
+
+## Multi-Asset Transfer
+
+Transfer multiple assets in a single transaction:
+
+```typescript
+const { tx, hashTxId } = await vault.transaction({
+  name: 'Batch Payment',
+  assets: [
+    {
+      assetId: ETH_ASSET_ID,
+      amount: '500000000', // 0.5 ETH
+      to: recipient1
+    },
+    {
+      assetId: USDC_ASSET_ID,
+      amount: '100000000', // 100 USDC
+      to: recipient2
+    },
+    {
+      assetId: TOKEN_ASSET_ID,
+      amount: '1000',
+      to: recipient3
+    }
+  ]
+});
+```
+
+## Multi-Recipient Transfer
+
+Same asset to multiple recipients:
+
+```typescript
+const { tx, hashTxId } = await vault.transaction({
+  name: 'Team Payroll',
+  assets: [
+    { assetId: USDC_ID, amount: '5000000000', to: employee1 },
+    { assetId: USDC_ID, amount: '6000000000', to: employee2 },
+    { assetId: USDC_ID, amount: '5500000000', to: employee3 },
+    { assetId: USDC_ID, amount: '7000000000', to: employee4 }
+  ]
+});
+```
+
+## Using BakoTransfer
+
+For more control, use `BakoTransfer` with a custom transaction:
+
+```typescript
+import { ScriptTransactionRequest } from 'fuels';
+
+// Create custom transaction request
+const txRequest = new ScriptTransactionRequest();
+// ... configure transaction ...
+
+const { tx, hashTxId } = await vault.BakoTransfer(txRequest, {
+  name: 'Custom Transaction'
+});
+```
+
+## Transaction Parameters
+
+### VaultTransaction Interface
+
+```typescript
+interface VaultTransaction {
+  name?: string;           // Display name (optional but recommended)
+  assets: ITransferAsset[];
+}
+```
+
+### ITransferAsset Interface
+
+```typescript
+interface ITransferAsset {
+  assetId: string;  // Asset ID (hex string)
+  amount: string;   // Amount in base units (string for precision)
+  to: string;       // Recipient address
+}
+```
+
+## Common Asset IDs
+
+| Asset | Mainnet ID |
+|-------|------------|
+| ETH | `0xf8f8b6283d7fa5b672b530cbb84fcccb4ff8dc40f8176ef4544ddb1f1952ad07` |
+
+> For other assets, query the asset contract or use Fuel explorer.
+
+## Amount Formatting
+
+Amounts must be in base units (smallest denomination):
+
+```typescript
+import { bn } from 'fuels';
+
+// ETH: 9 decimals
+const ethAmount = bn.parseUnits('1.5', 9).toString(); // 1.5 ETH
+
+// USDC: 6 decimals
+const usdcAmount = bn.parseUnits('100', 6).toString(); // 100 USDC
+
+const { tx } = await vault.transaction({
+  name: 'Transfer',
+  assets: [
+    { assetId: ETH_ID, amount: ethAmount, to: recipient }
+  ]
+});
+```
+
+## Validation Before Creating
+
+```typescript
+async function createSafeTransaction(
+  vault: Vault,
+  assets: ITransferAsset[]
+) {
+  // Validate balances
+  for (const asset of assets) {
+    const balance = await vault.getBalance(asset.assetId);
+    const amount = bn(asset.amount);
+
+    if (balance.lt(amount)) {
+      throw new Error(
+        `Insufficient ${asset.assetId}: have ${balance}, need ${amount}`
+      );
+    }
+  }
+
+  // Validate addresses
+  for (const asset of assets) {
+    if (!asset.to.startsWith('fuel1') && !asset.to.startsWith('0x')) {
+      throw new Error(`Invalid recipient address: ${asset.to}`);
+    }
+  }
+
+  // Create transaction
+  return vault.transaction({
+    name: 'Validated Transfer',
+    assets
+  });
+}
+```
+
+## Error Handling
+
+```typescript
+try {
+  const { tx, hashTxId } = await vault.transaction({
+    name: 'Payment',
+    assets: [{ assetId, amount, to }]
+  });
+} catch (error) {
+  if (error.message.includes('insufficient')) {
+    console.error('Not enough balance');
+  } else if (error.message.includes('invalid')) {
+    console.error('Invalid transaction parameters');
+  } else {
+    console.error('Transaction creation failed:', error);
+  }
+}
+```
+
+## After Creation
+
+Once created, the transaction:
+1. Is saved to Bako servers
+2. Appears in the Bako Safe app
+3. Awaits signatures from vault signers
+4. Can be monitored via `transactionFromHash()`
+
+```typescript
+// After creation
+console.log('Transaction created!');
+console.log('Hash:', hashTxId);
+console.log('');
+console.log('Next steps:');
+console.log('1. Share hash with other signers');
+console.log('2. Sign at https://safe.bako.global');
+console.log('3. Transaction executes when threshold reached');
+```
+
+## Next Steps
+
+- [Signing Transactions](/sdk/transactions/signing)
+- [Sending Transactions](/sdk/transactions/sending)
+- [Status Monitoring](/sdk/transactions/status)

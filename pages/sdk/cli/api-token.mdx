@@ -1,0 +1,141 @@
+# API Token Setup
+
+Learn how to generate and manage API tokens for programmatic access to Bako Safe.
+
+## Generating an API Token
+
+### Step 1: Access Bako Safe App
+
+Go to [safe.bako.global](https://safe.bako.global) and connect your wallet.
+
+### Step 2: Navigate to Vault Settings
+
+1. Select your Vault from the dashboard
+2. Click on **Settings** (gear icon)
+3. Select **API Tokens** tab
+
+### Step 3: Create New Token
+
+1. Click **"Create New Token"**
+2. Enter a descriptive name (e.g., "CI/CD Pipeline", "Backend Service")
+3. Click **"Generate"**
+4. **Copy the token immediately** - it won't be shown again
+
+## Token Format
+
+API tokens are JWT-encoded strings containing:
+- Vault reference
+- Permissions
+- Expiration (if set)
+
+Example token structure (decoded):
+```json
+{
+  "vaultId": "vault-uuid",
+  "address": "fuel1...",
+  "permissions": ["read", "write", "sign"],
+  "exp": 1735689600
+}
+```
+
+## Using the Token
+
+### Environment Variable (Recommended)
+
+```bash
+# .env
+BAKO_API_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+```typescript
+import { BakoProvider } from 'bakosafe';
+import 'dotenv/config';
+
+const provider = await BakoProvider.create(
+  'https://mainnet.fuel.network/v1/graphql',
+  { apiToken: process.env.BAKO_API_TOKEN }
+);
+```
+
+### Direct Usage (Testing Only)
+
+```typescript
+const provider = await BakoProvider.create(
+  'https://mainnet.fuel.network/v1/graphql',
+  { apiToken: 'your-token-here' }
+);
+```
+
+> **Warning**: Never hardcode tokens in production code.
+
+## Token Management
+
+### Listing Tokens
+
+In the Bako Safe app, view all active tokens under **Vault Settings > API Tokens**.
+
+### Revoking Tokens
+
+1. Go to **Vault Settings > API Tokens**
+2. Find the token to revoke
+3. Click **"Revoke"**
+4. Confirm the action
+
+Revoked tokens are immediately invalidated.
+
+### Token Rotation
+
+Best practice is to rotate tokens periodically:
+
+1. Generate a new token
+2. Update your environment/secrets
+3. Deploy with new token
+4. Revoke the old token
+
+## Custom Server API
+
+If you're running a self-hosted Bako API, specify the server URL:
+
+```typescript
+const provider = await BakoProvider.create(
+  'https://mainnet.fuel.network/v1/graphql',
+  {
+    apiToken: process.env.BAKO_API_TOKEN,
+    serverApi: 'https://your-api.example.com'
+  }
+);
+```
+
+## Security Checklist
+
+- [ ] Store tokens in environment variables or secret managers
+- [ ] Never commit tokens to version control
+- [ ] Use `.gitignore` to exclude `.env` files
+- [ ] Rotate tokens every 90 days
+- [ ] Revoke unused tokens immediately
+- [ ] Use separate tokens for different environments (dev, staging, prod)
+- [ ] Monitor token usage in the Bako Safe app
+
+## Troubleshooting
+
+### Token Invalid
+
+- Check if the token has been revoked
+- Verify the token is complete (no truncation)
+- Ensure correct environment variable is loaded
+
+### Authentication Failed
+
+- Confirm network URL matches token's network
+- Check server API URL if using custom server
+- Verify token has not expired
+
+### Permission Denied
+
+- Token may not have required permissions
+- Generate a new token with correct permissions
+
+## Next Steps
+
+- [Authentication Flow](/sdk/cli/authentication)
+- [CLI Examples](/sdk/cli/examples)

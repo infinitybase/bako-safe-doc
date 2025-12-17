@@ -1,0 +1,90 @@
+# CLI & API Token Overview
+
+The Bako Safe SDK supports programmatic access through API tokens, enabling automation, CI/CD pipelines, and server-side applications.
+
+## Use Cases
+
+- **Automation Scripts**: Automated treasury management
+- **CI/CD Pipelines**: Deploy contracts and manage funds in deployment pipelines
+- **Backend Services**: Server-side transaction creation
+- **Monitoring Tools**: Track vault balances and transactions
+- **Scheduled Tasks**: Recurring payments and distributions
+
+## How It Works
+
+Instead of interactive wallet signing, API tokens provide direct authentication:
+
+```typescript
+import { BakoProvider, Vault } from 'bakosafe';
+
+// Single line authentication
+const provider = await BakoProvider.create(
+  'https://mainnet.fuel.network/v1/graphql',
+  { apiToken: 'your-api-token' }
+);
+
+// Ready to use
+const vault = Vault.createFromProvider(provider);
+```
+
+## API Token vs Interactive Auth
+
+| Feature | API Token | Interactive Auth |
+|---------|-----------|------------------|
+| User interaction | Not required | Required |
+| Browser needed | No | Yes |
+| Best for | Scripts, servers | dApps |
+| Security | Token-based | Wallet signature |
+| Session management | Automatic | Challenge-response |
+
+## Getting Started
+
+1. [Create an API Token](/sdk/cli/api-token) in the Bako Safe app
+2. [Authenticate](/sdk/cli/authentication) with your token
+3. [Run examples](/sdk/cli/examples) to test your setup
+
+## Security Best Practices
+
+- **Never commit tokens**: Use environment variables
+- **Rotate regularly**: Generate new tokens periodically
+- **Limit permissions**: Use workspace-specific tokens when possible
+- **Audit usage**: Monitor token activity in the Bako Safe app
+
+## Environment Variables
+
+```bash
+# .env file
+BAKO_API_TOKEN=your-api-token-here
+VAULT_ADDRESS=your-vault-address
+NETWORK_URL=https://mainnet.fuel.network/v1/graphql
+```
+
+## Quick Example
+
+```typescript
+import { BakoProvider, Vault } from 'bakosafe';
+import 'dotenv/config';
+
+async function main() {
+  const provider = await BakoProvider.create(
+    process.env.NETWORK_URL,
+    { apiToken: process.env.BAKO_API_TOKEN }
+  );
+
+  const vault = await Vault.fromAddress(
+    process.env.VAULT_ADDRESS,
+    provider
+  );
+
+  console.log('Vault address:', vault.address.toString());
+  console.log('Balance:', await vault.getBalance());
+}
+
+main();
+```
+
+## Next Steps
+
+- [Generate API Token](/sdk/cli/api-token)
+- [Authentication Details](/sdk/cli/authentication)
+- [Working Examples](/sdk/cli/examples)

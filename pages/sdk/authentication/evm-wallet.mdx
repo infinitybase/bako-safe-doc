@@ -1,0 +1,173 @@
+# EVM Wallet Authentication
+
+Authenticate using Ethereum-compatible wallets like MetaMask, WalletConnect, or other EVM wallets.
+
+## Prerequisites
+
+- User has an EVM wallet installed (MetaMask, etc.)
+- User has an Ethereum address
+
+## How It Works
+
+EVM authentication allows users with Ethereum wallets to interact with Bako Safe on Fuel. The SDK handles the address conversion between EVM and Fuel formats.
+
+## Implementation with MetaMask
+
+```typescript
+import { BakoProvider, TypeUser } from 'bakosafe';
+
+async function authenticateWithMetaMask() {
+  // Check if MetaMask is installed
+  if (!window.ethereum) {
+    throw new Error('MetaMask not installed');
+  }
+
+  // Request account access
+  const accounts = await window.ethereum.request({
+    method: 'eth_requestAccounts'
+  });
+  const evmAddress = accounts[0];
+
+  // Step 1: Setup authentication
+  const { code } = await BakoProvider.setup({
+    address: evmAddress,
+    provider: 'https://mainnet.fuel.network/v1/graphql',
+    encoder: TypeUser.EVM
+  });
+
+  // Step 2: Sign the challenge with MetaMask
+  const signature = await window.ethereum.request({
+    method: 'personal_sign',
+    params: [code, evmAddress]
+  });
+
+  // Step 3: Complete authentication
+  const provider = await BakoProvider.authenticate({
+    challenge: code,
+    signature,
+    encoder: TypeUser.EVM,
+    address: evmAddress,
+    serverUrl: 'https://api.bako.global'
+  });
+
+  return provider;
+}
+```
+
+## Using with ethers.js
+
+```typescript
+import { BakoProvider, TypeUser } from 'bakosafe';
+import { ethers } from 'ethers';
+
+async function authenticateWithEthers() {
+  // Connect to MetaMask
+  const ethProvider = new ethers.BrowserProvider(window.ethereum);
+  const signer = await ethProvider.getSigner();
+  const evmAddress = await signer.getAddress();
+
+  // Setup
+  const { code } = await BakoProvider.setup({
+    address: evmAddress,
+    provider: 'https://mainnet.fuel.network/v1/graphql',
+    encoder: TypeUser.EVM
+  });
+
+  // Sign
+  const signature = await signer.signMessage(code);
+
+  // Authenticate
+  const provider = await BakoProvider.authenticate({
+    challenge: code,
+    signature,
+    encoder: TypeUser.EVM,
+    address: evmAddress,
+    serverUrl: 'https://api.bako.global'
+  });
+
+  return provider;
+}
+```
+
+## Using with wagmi/viem
+
+```typescript
+import { BakoProvider, TypeUser } from 'bakosafe';
+import { useAccount, useSignMessage } from 'wagmi';
+
+function useBakoEVMAuth() {
+  const { address } = useAccount();
+  const { signMessageAsync } = useSignMessage();
+
+  async function authenticate() {
+    if (!address) {
+      throw new Error('Wallet not connected');
+    }
+
+    // Setup
+    const { code } = await BakoProvider.setup({
+      address,
+      provider: 'https://mainnet.fuel.network/v1/graphql',
+      encoder: TypeUser.EVM
+    });
+
+    // Sign
+    const signature = await signMessageAsync({ message: code });
+
+    // Authenticate
+    const provider = await BakoProvider.authenticate({
+      challenge: code,
+      signature,
+      encoder: TypeUser.EVM,
+      address,
+      serverUrl: 'https://api.bako.global'
+    });
+
+    return provider;
+  }
+
+  return { authenticate };
+}
+```
+
+## Address Conversion
+
+The SDK provides utilities for converting between EVM and Fuel address formats:
+
+```typescript
+import { AddressUtils } from 'bakosafe';
+
+// Check if address is EVM format
+const isEvm = AddressUtils.isEvm('0x742d35Cc6634C0532925a3b844Bc9e7595f8fE34');
+
+// Convert Fuel address to EVM format
+const evmAddress = AddressUtils.parseFuelAddressToEth(fuelAddress);
+```
+
+## Supported EVM Wallets
+
+| Wallet | Support |
+|--------|---------|
+| MetaMask | Full |
+| WalletConnect | Full |
+| Coinbase Wallet | Full |
+| Rainbow | Full |
+| Trust Wallet | Full |
+| Any EIP-1193 compatible wallet | Full |
+
+## Signature Encoding
+
+EVM signatures use a different encoding than Fuel signatures. The SDK handles this automatically through the `SignatureType.Evm` coder:
+
+```typescript
+import { SignatureType } from 'bakosafe';
+
+// SignatureType.Evm = 2
+// Used internally for encoding EVM signatures
+```
+
+## Next Steps
+
+- [Fuel Wallet Authentication](/sdk/authentication/fuel-wallet)
+- [WebAuthn Authentication](/sdk/authentication/webauthn)
+- [Create a Vault](/sdk/vault/creating)

@@ -1,0 +1,310 @@
+# Types & Interfaces
+
+Complete type definitions for the Bako Safe SDK.
+
+## Provider Types
+
+### BakoProviderOptions
+
+```typescript
+interface BakoProviderOptions {
+  /** API token for CLI/server authentication */
+  apiToken?: string;
+  /** Address of the authenticated user */
+  address?: string;
+  /** Custom server URL */
+  serverUrl?: string;
+}
+```
+
+### BakoProviderSetupOptions
+
+```typescript
+interface BakoProviderSetupOptions {
+  /** User's address for authentication */
+  address: string;
+  /** Existing session token (optional) */
+  token?: string;
+}
+```
+
+## Vault Types
+
+### VaultConfigurable
+
+```typescript
+interface VaultConfigurable {
+  /** Number of signatures required to execute transactions */
+  SIGNATURES_COUNT: number;
+  /** Array of signer addresses */
+  SIGNERS: string[];
+  /** Network identifier */
+  network?: string;
+  /** Chain ID */
+  chainId?: number;
+}
+```
+
+### VaultPayload
+
+```typescript
+interface VaultPayload {
+  /** Vault configuration */
+  configurable: VaultConfigurable;
+  /** Vault name (optional) */
+  name?: string;
+  /** Vault description (optional) */
+  description?: string;
+  /** Predicate version hash (optional) */
+  version?: string;
+}
+```
+
+### VaultDetails
+
+```typescript
+interface VaultDetails {
+  /** Unique identifier */
+  id: string;
+  /** Vault name */
+  name: string;
+  /** Description */
+  description?: string;
+  /** Predicate address */
+  predicateAddress: string;
+  /** Configuration */
+  configurable: VaultConfigurable;
+  /** Predicate version */
+  version: string;
+  /** Creation timestamp */
+  createdAt: string;
+}
+```
+
+## Transaction Types
+
+### TransactionParams
+
+```typescript
+interface TransactionParams {
+  /** Transaction name/description */
+  name: string;
+  /** Assets to transfer */
+  assets: TransferAsset[];
+  /** Pre-existing witnesses (optional) */
+  witnesses?: string[];
+}
+```
+
+### TransferAsset
+
+```typescript
+interface TransferAsset {
+  /** Asset ID (hex string) */
+  assetId: string;
+  /** Amount to transfer (string for precision) */
+  amount: string;
+  /** Recipient address */
+  to: string;
+}
+```
+
+### TransactionResponse
+
+```typescript
+interface TransactionResponse {
+  /** Transaction request object */
+  tx: TransactionRequest;
+  /** Bako transaction hash ID */
+  hashTxId: string;
+}
+```
+
+### TransactionDetails
+
+```typescript
+interface TransactionDetails {
+  /** Unique identifier */
+  id: string;
+  /** Transaction hash */
+  hash: string;
+  /** Transaction name */
+  name: string;
+  /** Current status */
+  status: TransactionStatus;
+  /** Collected witnesses/signatures */
+  witnesses: WitnessInfo[];
+  /** Output assets */
+  outputs: TransferAsset[];
+  /** Gas used (if executed) */
+  gasUsed?: string;
+  /** Execution timestamp (if executed) */
+  sendTime?: string;
+  /** Creation timestamp */
+  createdAt: string;
+  /** Last update timestamp */
+  updatedAt: string;
+}
+```
+
+### WitnessInfo
+
+```typescript
+interface WitnessInfo {
+  /** Witness index */
+  index: number;
+  /** Signer address */
+  account: string;
+  /** Signature value */
+  signature: string;
+  /** Signature status */
+  status: string;
+}
+```
+
+### ListTransactionsParams
+
+```typescript
+interface ListTransactionsParams {
+  /** Filter by recipient */
+  to?: string;
+  /** Filter by hash */
+  hash?: string;
+  /** Filter by status */
+  status?: TransactionStatus[];
+  /** Results per page */
+  perPage?: number;
+  /** Page number */
+  page?: number;
+  /** Order by field */
+  orderBy?: string;
+  /** Sort direction */
+  sort?: SortOption;
+}
+```
+
+## Predicate Types
+
+### PredicateVersion
+
+```typescript
+interface PredicateVersion {
+  /** Version ID (hash) */
+  id: string;
+  /** Version name */
+  name: string;
+  /** Description */
+  description?: string;
+  /** Version code identifier */
+  code: string;
+  /** Predicate bytecode (hex) */
+  bytes: string;
+  /** Predicate ABI (JSON string) */
+  abi: string;
+  /** Whether version is active */
+  active: boolean;
+  /** Supported wallet origins */
+  walletOrigins: WalletOrigin[];
+}
+```
+
+## Signature Types
+
+### SignatureInput
+
+```typescript
+type SignatureInput =
+  | FuelInput
+  | EvmInput
+  | WebAuthnInput
+  | RawNoPrefixInput;
+```
+
+### FuelInput
+
+```typescript
+interface FuelInput {
+  type: SignatureType.Fuel;
+  signature: string;
+}
+```
+
+### EvmInput
+
+```typescript
+interface EvmInput {
+  type: SignatureType.Evm;
+  signature: string;
+}
+```
+
+### WebAuthnInput
+
+```typescript
+interface WebAuthnInput {
+  type: SignatureType.WebAuthn;
+  signature: string;
+  prefix: string;
+  suffix: string;
+  authData: string;
+}
+```
+
+### RawNoPrefixInput
+
+```typescript
+interface RawNoPrefixInput {
+  type: SignatureType.RawNoPrefix;
+  signature: string;
+}
+```
+
+## Service Types
+
+### AuthChallenge
+
+```typescript
+interface AuthChallenge {
+  /** Code to sign */
+  code: string;
+  /** Expiration time */
+  validAt: string;
+  /** Request origin */
+  origin: string;
+}
+```
+
+### AuthResponse
+
+```typescript
+interface AuthResponse {
+  /** Access token */
+  accessToken: string;
+  /** User address */
+  address: string;
+  /** User avatar URL */
+  avatar: string;
+  /** User ID */
+  user_id: string;
+  /** Current workspace */
+  workspace: Workspace;
+}
+```
+
+### Workspace
+
+```typescript
+interface Workspace {
+  /** Workspace ID */
+  id: string;
+  /** Workspace name */
+  name: string;
+  /** Workspace avatar */
+  avatar: string;
+}
+```
+
+## Next Steps
+
+- [Enums](/sdk/reference/enums)
+- [Changelog](/sdk/reference/changelog)

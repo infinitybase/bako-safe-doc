@@ -1,1 +1,82 @@
-The Bako Connector is an essential tool for external dApps to interact with the Bako Safe ecosystem. It provides a secure interface for user authentication, asset management, and transaction safety. Leveraging the Fuel Wallet connector features, the Bako Connector offers a seamless and protected method for direct communication and operations within Bako Safe, enhancing user experience and operational efficiency.
+# Bako Safe Connector
+
+The Bako Safe Connector enables external dApps to interact with the Bako Safe ecosystem through the Fuel wallet infrastructure.
+
+## What is it?
+
+The connector provides a secure interface for:
+
+- **User Authentication**: Connect users to their Bako Safe vaults
+- **Asset Management**: View and manage vault balances
+- **Transaction Safety**: Multi-signature transaction approval flow
+- **Seamless Integration**: Works with existing Fuel wallet connector infrastructure
+
+## How it Works
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Your dApp                                 │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  1. User clicks "Connect"                                    │
+│     └── FuelProvider triggers connector selection            │
+│                                                              │
+│  2. User selects "Bako Safe"                                 │
+│     └── BSafeConnector opens Bako Safe popup                 │
+│                                                              │
+│  3. User selects vault                                       │
+│     └── Vault address returned to dApp                       │
+│                                                              │
+│  4. dApp creates transaction                                 │
+│     └── Transaction sent to Bako Safe for approval           │
+│                                                              │
+│  5. Vault signers approve                                    │
+│     └── Transaction broadcast after threshold met            │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Key Features
+
+### Multi-Signature Support
+
+Transactions created through the connector require approval from vault signers before execution.
+
+### Vault Selection
+
+Users can select which vault to use when connecting, allowing management of multiple vaults.
+
+### Transaction Queue
+
+Pending transactions are queued in Bako Safe until all required signatures are collected.
+
+### Notification System
+
+Vault signers receive notifications when transactions require their approval.
+
+## Architecture
+
+The connector integrates with:
+
+- **Fuel Wallet SDK**: Standard wallet connection interface
+- **Bako Safe App**: Vault management and transaction approval
+- **Bako Safe SDK**: Backend communication and transaction handling
+
+## Use Cases
+
+### DeFi Applications
+
+Allow users to interact with DeFi protocols using their multi-sig vaults for enhanced security.
+
+### DAO Treasury Management
+
+DAOs can use Bako Safe vaults to manage treasury funds with multi-signature approval.
+
+### Secure Asset Transfers
+
+Organizations can require multiple approvals for large transfers.
+
+## Next Steps
+
+- [Quick Start](/connector/quick-start/pre-requisites)
+- [Installation](/connector/quick-start/installation)

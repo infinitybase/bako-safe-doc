@@ -1,0 +1,146 @@
+# Examples Overview
+
+Complete working examples demonstrating Bako Safe SDK integration patterns.
+
+## Example Categories
+
+### Contract Interaction
+
+Call smart contract methods from a multi-signature vault with proper approval flow.
+
+- [Contract Call Example](/sdk/examples/contract-call)
+
+### Token Transfers
+
+Send native assets and tokens between addresses with multi-sig security.
+
+- [Transfer Example](/sdk/examples/transfer)
+
+## Prerequisites
+
+All examples require:
+
+```bash
+npm install bakosafe fuels
+```
+
+Environment variables:
+
+```bash
+# .env
+BAKO_API_TOKEN=your_api_token
+NEXT_PUBLIC_FUEL_NETWORK_URL=https://mainnet.fuel.network/v1/graphql
+```
+
+## Example Structure
+
+Each example follows this pattern:
+
+```typescript
+import { BakoProvider, Vault } from 'bakosafe';
+import { Provider } from 'fuels';
+
+async function main() {
+  // 1. Setup provider
+  const fuelProvider = new Provider(process.env.NEXT_PUBLIC_FUEL_NETWORK_URL!);
+  const provider = await BakoProvider.create(
+    process.env.NEXT_PUBLIC_FUEL_NETWORK_URL!,
+    { apiToken: process.env.BAKO_API_TOKEN }
+  );
+
+  // 2. Load or create vault
+  const vault = await Vault.fromAddress(vaultAddress, provider);
+
+  // 3. Create transaction
+  const { tx, hashTxId } = await vault.transaction(/* params */);
+
+  // 4. Sign and send
+  // ...
+}
+
+main().catch(console.error);
+```
+
+## Running Examples
+
+### From Repository
+
+Clone the examples repository:
+
+```bash
+git clone https://github.com/guimroque/bako-wallet-snippet
+cd bako-wallet-snippet
+npm install
+```
+
+Configure environment:
+
+```bash
+cp .env.example .env
+# Edit .env with your credentials
+```
+
+Run specific example:
+
+```bash
+npx ts-node examples/contract-call.ts
+```
+
+### In Your Project
+
+1. Install dependencies
+2. Copy example code
+3. Configure environment variables
+4. Run with ts-node or compile
+
+## Common Patterns
+
+### Error Handling
+
+```typescript
+try {
+  const { tx } = await vault.transaction(params);
+} catch (error) {
+  if (error.message.includes('Insufficient')) {
+    console.error('Not enough balance');
+  } else if (error.message.includes('credentials')) {
+    console.error('Authentication required');
+  } else {
+    throw error;
+  }
+}
+```
+
+### Transaction Monitoring
+
+```typescript
+const { tx, hashTxId } = await vault.transaction(params);
+
+// Poll for status updates
+const checkStatus = async () => {
+  const details = await provider.service.getTransaction(hashTxId);
+  console.log('Status:', details.status);
+  return details.status;
+};
+```
+
+### Multi-Signer Flow
+
+```typescript
+// Signer 1: Create and sign
+const { tx, hashTxId } = await vault.transaction(params);
+await vault.sign(hashTxId);
+
+// Signer 2: Load and sign
+const vault2 = await Vault.fromAddress(vaultAddress, provider2);
+const pending = await provider2.service.getTransaction(hashTxId);
+await vault2.sign(hashTxId);
+
+// After threshold met: Send
+await vault.send(hashTxId);
+```
+
+## Next Steps
+
+- [Contract Interaction](/sdk/examples/contract-call)
+- [Token Transfer](/sdk/examples/transfer)

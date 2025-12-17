@@ -1,0 +1,213 @@
+# Provider Services
+
+The BakoProvider uses an internal Service layer for API communication. Understanding these services helps with debugging and advanced usage.
+
+## Service Architecture
+
+```
+BakoProvider
+    └── Service
+        ├── Authentication
+        ├── Predicates
+        ├── Transactions
+        └── Workspaces
+```
+
+## Service Class
+
+The `Service` class handles all HTTP communication with the Bako API.
+
+### Static Methods
+
+#### create()
+
+Create a new user session.
+
+```typescript
+static async create(
+  params: IAuthRequestCode,
+  api?: string
+): Promise<IAuthCreateResponse>
+```
+
+**Request:**
+```typescript
+interface IAuthRequestCode {
+  address: string;
+  provider: string;
+  type?: TypeUser;
+}
+```
+
+**Response:**
+```typescript
+interface IAuthCreateResponse {
+  code: string;      // Challenge to sign
+  validAt: string;   // Expiration timestamp
+}
+```
+
+#### sign()
+
+Authenticate with signed challenge.
+
+```typescript
+static async sign(
+  params: IAuthSignRequest,
+  api?: string
+): Promise<IAuthSignResponse>
+```
+
+**Request:**
+```typescript
+interface IAuthSignRequest {
+  digest: string;     // The challenge code
+  encoder: TypeUser;  // Signature type
+  signature: string;  // Signed challenge
+}
+```
+
+**Response:**
+```typescript
+interface IAuthSignResponse {
+  accessToken: string;
+  address: string;
+  avatar: string;
+  user_id: string;
+  workspace: Workspace;
+}
+```
+
+#### cliAuth()
+
+Authenticate with API token.
+
+```typescript
+static async cliAuth(
+  params: CLIAuthPayload
+): Promise<CLIAuth>
+```
+
+**Request:**
+```typescript
+interface CLIAuthPayload {
+  token: string;
+  network: {
+    url: string;
+    chainId: string;
+  };
+  serverApi?: string;
+}
+```
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/auth/create` | Generate challenge |
+| POST | `/auth/sign` | Authenticate with signature |
+| POST | `/cli/auth` | Authenticate with API token |
+| GET | `/workspace` | List workspaces |
+| POST | `/predicate` | Create predicate |
+| GET | `/predicate/:address` | Get predicate by address |
+| POST | `/transaction` | Create transaction |
+| GET | `/transaction/:hash` | Get transaction |
+| POST | `/transaction/sign` | Sign transaction |
+| POST | `/transaction/send` | Send transaction |
+
+## Request Headers
+
+All authenticated requests include:
+
+```typescript
+enum AuthRequestHeaders {
+  Authorization = 'Authorization',
+  Signeraddress = 'Signeraddress'
+}
+
+// Example headers
+{
+  'Authorization': 'Bearer <token>',
+  'Signeraddress': '<user-address>'
+}
+```
+
+## Service Configuration
+
+### Default Configuration
+
+```typescript
+const defaultConfig = {
+  serverUrl: 'https://api.bako.global'
+};
+```
+
+### Custom Configuration
+
+```typescript
+interface ApiConfigurable {
+  address?: string;
+  token?: string;
+  serverUrl?: string;
+}
+```
+
+## Error Responses
+
+The service handles various error types:
+
+| Status | Meaning |
+|--------|---------|
+| 400 | Bad request / Invalid parameters |
+| 401 | Invalid or expired token |
+| 403 | Insufficient permissions |
+| 404 | Resource not found |
+| 500 | Server error |
+
+### Error Handling Example
+
+```typescript
+try {
+  const result = await provider.createTransaction(params);
+} catch (error) {
+  if (error.response) {
+    switch (error.response.status) {
+      case 401:
+        // Re-authenticate
+        break;
+      case 403:
+        // Check permissions
+        break;
+      default:
+        console.error('API Error:', error.response.data);
+    }
+  }
+}
+```
+
+## Direct Service Usage
+
+For advanced use cases, you can use the Service directly:
+
+```typescript
+import { Service } from 'bakosafe';
+
+// Create session
+const authResponse = await Service.create({
+  address: walletAddress,
+  provider: networkUrl,
+  type: TypeUser.FUEL
+});
+
+// Sign
+const signResponse = await Service.sign({
+  digest: authResponse.code,
+  encoder: TypeUser.FUEL,
+  signature: walletSignature
+});
+```
+
+## Next Steps
+
+- [Vault Overview](/sdk/vault/overview)
+- [Transaction Management](/sdk/transactions/overview)

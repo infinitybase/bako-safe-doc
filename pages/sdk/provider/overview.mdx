@@ -1,0 +1,114 @@
+# BakoProvider Overview
+
+`BakoProvider` is the main entry point for interacting with the Bako Safe SDK. It handles authentication, network communication, and serves as the foundation for vault operations.
+
+## What is BakoProvider?
+
+BakoProvider extends Fuel's native `Provider` class with Bako-specific functionality:
+
+- **Authentication**: Manages user sessions and API tokens
+- **API Communication**: Handles requests to Bako Safe servers
+- **Credential Storage**: Stores and manages authentication state
+- **Service Access**: Provides access to Bako services (predicates, transactions, etc.)
+
+## Class Overview
+
+```typescript
+class BakoProvider extends Provider {
+  // Authentication data
+  cliAuth?: CLIAuth;
+
+  // Static methods
+  static async create(url: string, options: BakoProviderOptions): Promise<BakoProvider>;
+  static async setup(params: BakoProviderSetup): Promise<BakoProviderAuth>;
+  static async authenticate(options: BakoProviderAuthOptions): Promise<BakoProvider>;
+
+  // Instance methods
+  getWorkspaces(): Promise<Workspace[]>;
+  getToken(): Promise<number>;
+  createPredicate(payload): Promise<PredicateResponse>;
+  findByAddress(address: string): Promise<PredicateResponse>;
+  // ... and more
+}
+```
+
+## Authentication Methods
+
+### API Token (Programmatic)
+
+```typescript
+const provider = await BakoProvider.create(
+  'https://mainnet.fuel.network/v1/graphql',
+  { apiToken: 'your-api-token' }
+);
+```
+
+### Interactive (Challenge-Response)
+
+```typescript
+// Step 1: Setup
+const { code } = await BakoProvider.setup({
+  address: walletAddress,
+  provider: 'https://mainnet.fuel.network/v1/graphql',
+  encoder: TypeUser.FUEL
+});
+
+// Step 2: Sign challenge with wallet
+const signature = await wallet.signMessage(code);
+
+// Step 3: Authenticate
+const provider = await BakoProvider.authenticate({
+  challenge: code,
+  signature,
+  encoder: TypeUser.FUEL,
+  address: walletAddress
+});
+```
+
+## Provider Options
+
+### BakoProviderOptions
+
+```typescript
+interface BakoProviderOptions extends ProviderOptions {
+  token: string;         // Session token
+  address: string;       // User address
+  serverApi?: string;    // Custom API URL
+  userId?: string;       // User ID
+  rootWallet?: string;   // Root wallet reference
+}
+```
+
+### BakoProviderAPITokenOptions
+
+```typescript
+interface BakoProviderAPITokenOptions extends ProviderOptions {
+  apiToken: string;      // API token
+  serverApi?: string;    // Custom API URL
+}
+```
+
+## Network Support
+
+| Network | URL |
+|---------|-----|
+| Mainnet | `https://mainnet.fuel.network/v1/graphql` |
+| Testnet | `https://testnet.fuel.network/v1/graphql` |
+
+## Usage with Vault
+
+Once authenticated, use the provider with Vault:
+
+```typescript
+// Create vault from provider credentials
+const vault = Vault.createFromProvider(provider);
+
+// Or recover existing vault
+const vault = await Vault.fromAddress(vaultAddress, provider);
+```
+
+## Next Steps
+
+- [Setup Guide](/sdk/provider/setup)
+- [Available Methods](/sdk/provider/methods)
+- [Services](/sdk/provider/services)

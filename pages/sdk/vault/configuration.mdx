@@ -1,0 +1,248 @@
+# Vault Configuration
+
+Understanding vault configuration options and how to customize them.
+
+## Configuration Types
+
+### VaultConfig Union
+
+```typescript
+type VaultConfig = BakoConfig | ConnectorConfig;
+```
+
+### BakoConfig (Multi-sig)
+
+```typescript
+interface BakoConfig {
+  type: ConfigVaultType.BAKO;  // 0
+  SIGNATURES_COUNT: number;
+  SIGNERS: string[];
+  HASH_PREDICATE?: string;
+}
+```
+
+### ConnectorConfig (Single-sig)
+
+```typescript
+interface ConnectorConfig {
+  type: ConfigVaultType.CONNECTOR;  // 1
+  SIGNER: string;
+}
+```
+
+## ConfigVaultType Enum
+
+```typescript
+enum ConfigVaultType {
+  BAKO = 0,       // Multi-signature vault
+  CONNECTOR = 1   // Single-signer connector vault
+}
+```
+
+## Getting Configuration
+
+### From Vault Instance
+
+```typescript
+const vault = await Vault.fromAddress(address, provider);
+const config = vault.getConfigurable();
+
+if (config.type === ConfigVaultType.BAKO) {
+  console.log('Multi-sig vault');
+  console.log('Signers:', config.SIGNERS);
+  console.log('Threshold:', config.SIGNATURES_COUNT);
+} else {
+  console.log('Connector vault');
+  console.log('Signer:', config.SIGNER);
+}
+```
+
+### Vault Properties
+
+```typescript
+const vault = await Vault.fromAddress(address, provider);
+
+// Read-only properties
+console.log('Bako Fee:', vault.bakoFee);
+console.log('Max Signers:', vault.maxSigners);
+console.log('Version:', vault.predicateVersion);
+console.log('Configurable:', vault.configurable);
+```
+
+## Multi-sig Configuration
+
+### Signature Threshold
+
+The `SIGNATURES_COUNT` determines how many signatures are required:
+
+| Signers | Threshold | Description |
+|---------|-----------|-------------|
+| 3 | 1 | 1-of-3: Any one signer can approve |
+| 3 | 2 | 2-of-3: Majority required |
+| 3 | 3 | 3-of-3: All must approve |
+| 5 | 3 | 3-of-5: Majority required |
+
+### Common Configurations
+
+**2-of-3 (Recommended for small teams)**
+```typescript
+const config = {
+  SIGNATURES_COUNT: 2,
+  SIGNERS: [signer1, signer2, signer3]
+};
+```
+
+**3-of-5 (Enterprise)**
+```typescript
+const config = {
+  SIGNATURES_COUNT: 3,
+  SIGNERS: [signer1, signer2, signer3, signer4, signer5]
+};
+```
+
+**5-of-7 (High security)**
+```typescript
+const config = {
+  SIGNATURES_COUNT: 5,
+  SIGNERS: [/* 7 signers */]
+};
+```
+
+## Signer Address Formats
+
+The SDK supports multiple address formats:
+
+```typescript
+const signers = [
+  'fuel1...',           // Fuel native address
+  '0x742d35...',        // EVM address
+  'bech32passkey...'    // WebAuthn/Passkey address
+];
+```
+
+## Allowed Recipients
+
+Some vaults can restrict recipients:
+
+```typescript
+const vault = await Vault.fromAddress(address, provider);
+
+// Get allowed recipients
+const recipients = vault.allowedRecipients;
+
+recipients.forEach(recipient => {
+  console.log(`${recipient.address} (${recipient.type})`);
+});
+```
+
+## Version Configuration
+
+### Getting Current Version
+
+```typescript
+import { getLatestPredicateVersion } from 'bakosafe';
+
+const version = await getLatestPredicateVersion('fuel');
+console.log('Latest version:', version);
+```
+
+### Version Properties
+
+```typescript
+interface PredicateVersion {
+  id: string;
+  bytes: string;      // Predicate bytecode
+  abi: string;        // ABI JSON
+  active: boolean;    // Is version active
+}
+```
+
+## Validation
+
+### Check Signer Count
+
+```typescript
+function validateConfig(config: BakoConfigurableType): boolean {
+  if (config.SIGNATURES_COUNT < 1) {
+    throw new Error('Threshold must be at least 1');
+  }
+
+  if (config.SIGNATURES_COUNT > config.SIGNERS.length) {
+    throw new Error('Threshold cannot exceed number of signers');
+  }
+
+  if (config.SIGNERS.length === 0) {
+    throw new Error('Must have at least one signer');
+  }
+
+  return true;
+}
+```
+
+### Check Compatibility
+
+```typescript
+import { VaultFactory } from 'bakosafe';
+
+const isCompatible = VaultFactory.isConfigurationCompatible(
+  config,
+  version
+);
+
+if (!isCompatible) {
+  console.error('Configuration not compatible with version');
+}
+```
+
+## Configuration Examples
+
+### Treasury Vault
+
+```typescript
+// Company treasury with board approval
+const treasuryConfig = {
+  SIGNATURES_COUNT: 3,  // Majority of 5
+  SIGNERS: [
+    ceoAddress,
+    cfoAddress,
+    ctoAddress,
+    boardMember1,
+    boardMember2
+  ]
+};
+```
+
+### Operations Vault
+
+```typescript
+// Day-to-day operations, any member can approve
+const opsConfig = {
+  SIGNATURES_COUNT: 1,
+  SIGNERS: [
+    opsManager1,
+    opsManager2,
+    opsManager3
+  ]
+};
+```
+
+### Cold Storage
+
+```typescript
+// Maximum security for cold storage
+const coldConfig = {
+  SIGNATURES_COUNT: 5,  // All 5 required
+  SIGNERS: [
+    hardwareWallet1,
+    hardwareWallet2,
+    hardwareWallet3,
+    hardwareWallet4,
+    hardwareWallet5
+  ]
+};
+```
+
+## Next Steps
+
+- [Vault Methods](/sdk/vault/methods)
+- [Creating Transactions](/sdk/transactions/creating)

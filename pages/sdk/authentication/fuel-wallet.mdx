@@ -1,0 +1,140 @@
+# Fuel Wallet Authentication
+
+Authenticate using native Fuel wallets like [Fuel Wallet](https://wallet.fuel.network/) or [Fuelet](https://fuelet.app/).
+
+## Prerequisites
+
+- User has Fuel Wallet browser extension installed
+- User has created a wallet and has an address
+
+## Implementation
+
+### Browser Integration
+
+```typescript
+import { BakoProvider, TypeUser } from 'bakosafe';
+
+async function authenticateWithFuelWallet() {
+  // Get Fuel Wallet instance
+  const fuel = window.fuel;
+  if (!fuel) {
+    throw new Error('Fuel Wallet not installed');
+  }
+
+  // Connect and get accounts
+  await fuel.connect();
+  const accounts = await fuel.accounts();
+  const address = accounts[0];
+
+  // Step 1: Setup authentication
+  const { code } = await BakoProvider.setup({
+    address,
+    provider: 'https://mainnet.fuel.network/v1/graphql',
+    encoder: TypeUser.FUEL
+  });
+
+  // Step 2: Sign the challenge
+  const signature = await fuel.signMessage(address, code);
+
+  // Step 3: Complete authentication
+  const provider = await BakoProvider.authenticate({
+    challenge: code,
+    signature,
+    encoder: TypeUser.FUEL,
+    address,
+    serverUrl: 'https://api.bako.global'
+  });
+
+  return provider;
+}
+```
+
+### Using with Fuel Wallet React Hooks
+
+If you're using `@fuels/react`:
+
+```typescript
+import { useWallet, useConnect } from '@fuels/react';
+import { BakoProvider, TypeUser } from 'bakosafe';
+
+function useBakoAuth() {
+  const { wallet } = useWallet();
+  const { connect } = useConnect();
+
+  async function authenticate() {
+    if (!wallet) {
+      await connect();
+      return;
+    }
+
+    const address = wallet.address.toString();
+
+    // Setup
+    const { code } = await BakoProvider.setup({
+      address,
+      provider: wallet.provider.url,
+      encoder: TypeUser.FUEL
+    });
+
+    // Sign
+    const signature = await wallet.signMessage(code);
+
+    // Authenticate
+    const provider = await BakoProvider.authenticate({
+      challenge: code,
+      signature,
+      encoder: TypeUser.FUEL,
+      address,
+      serverUrl: 'https://api.bako.global'
+    });
+
+    return provider;
+  }
+
+  return { authenticate };
+}
+```
+
+## Using with Private Key (Testing Only)
+
+For testing purposes, you can authenticate using a private key:
+
+```typescript
+import { BakoProvider, TypeUser } from 'bakosafe';
+import { Wallet, Provider } from 'fuels';
+
+async function authenticateWithPrivateKey(privateKey: string) {
+  const fuelProvider = await Provider.create('https://mainnet.fuel.network/v1/graphql');
+  const wallet = Wallet.fromPrivateKey(privateKey, fuelProvider);
+  const address = wallet.address.toString();
+
+  // Setup
+  const { code } = await BakoProvider.setup({
+    address,
+    provider: fuelProvider.url,
+    encoder: TypeUser.FUEL
+  });
+
+  // Sign with wallet
+  const signature = await wallet.signMessage(code);
+
+  // Authenticate
+  const provider = await BakoProvider.authenticate({
+    challenge: code,
+    signature,
+    encoder: TypeUser.FUEL,
+    address,
+    serverUrl: 'https://api.bako.global'
+  });
+
+  return provider;
+}
+```
+
+> **Warning**: Never use private keys in production browser applications. Use the browser wallet integration instead.
+
+## Next Steps
+
+- [Create a Vault](/sdk/vault/creating)
+- [WebAuthn Authentication](/sdk/authentication/webauthn)
+- [API Token for CLI](/sdk/cli/overview)

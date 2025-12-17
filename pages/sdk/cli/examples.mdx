@@ -1,0 +1,307 @@
+# CLI Examples
+
+Complete working examples for CLI and script usage with the Bako Safe SDK.
+
+## Setup
+
+### Project Structure
+
+```
+my-bako-script/
+├── src/
+│   └── index.ts
+├── .env
+├── package.json
+└── tsconfig.json
+```
+
+### package.json
+
+```json
+{
+  "name": "bako-cli-example",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "ts-node src/index.ts"
+  },
+  "dependencies": {
+    "bakosafe": "^0.1.9",
+    "fuels": "^0.99.0",
+    "dotenv": "^16.5.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3",
+    "@types/node": "^20.4.3"
+  }
+}
+```
+
+### .env
+
+```env
+NETWORK_URL=https://mainnet.fuel.network/v1/graphql
+BAKO_API_TOKEN=your-api-token-here
+VAULT_ADDRESS=fuel1your-vault-address
+```
+
+## Example 1: Check Vault Balance
+
+```typescript
+// src/check-balance.ts
+import { BakoProvider, Vault } from 'bakosafe';
+import 'dotenv/config';
+
+async function checkBalance() {
+  // Authenticate
+  const provider = await BakoProvider.create(
+    process.env.NETWORK_URL!,
+    { apiToken: process.env.BAKO_API_TOKEN! }
+  );
+
+  // Get vault
+  const vault = await Vault.fromAddress(
+    process.env.VAULT_ADDRESS!,
+    provider
+  );
+
+  // Get balances
+  const balances = await vault.getBalances();
+
+  console.log('Vault:', vault.address.toString());
+  console.log('Balances:');
+  balances.forEach(balance => {
+    console.log(`  ${balance.assetId}: ${balance.amount.toString()}`);
+  });
+}
+
+checkBalance().catch(console.error);
+```
+
+## Example 2: Create Transfer Transaction
+
+```typescript
+// src/transfer.ts
+import { BakoProvider, Vault } from 'bakosafe';
+import 'dotenv/config';
+
+const ETH_ASSET_ID = '0xf8f8b6283d7fa5b672b530cbb84fcccb4ff8dc40f8176ef4544ddb1f1952ad07';
+
+async function createTransfer() {
+  const provider = await BakoProvider.create(
+    process.env.NETWORK_URL!,
+    { apiToken: process.env.BAKO_API_TOKEN! }
+  );
+
+  const vault = await Vault.fromAddress(
+    process.env.VAULT_ADDRESS!,
+    provider
+  );
+
+  // Create transaction
+  const { tx, hashTxId } = await vault.transaction({
+    name: 'CLI Transfer',
+    assets: [{
+      assetId: ETH_ASSET_ID,
+      amount: '100000', // 0.0001 ETH
+      to: 'fuel1recipient-address-here'
+    }]
+  });
+
+  console.log('Transaction created!');
+  console.log('Hash:', hashTxId);
+  console.log('');
+  console.log('Next steps:');
+  console.log('1. Go to https://safe.bako.global');
+  console.log('2. Sign the transaction with required signers');
+  console.log('3. Transaction will be sent automatically');
+}
+
+createTransfer().catch(console.error);
+```
+
+## Example 3: Contract Interaction
+
+Based on [bako-wallet-snippet](https://github.com/guimroque/bako-wallet-snippet):
+
+```typescript
+// src/contract-call.ts
+import { BakoProvider, Vault } from 'bakosafe';
+import { Contract, Provider } from 'fuels';
+import 'dotenv/config';
+
+// Import your contract ABI
+import { MyContractAbi__factory } from './contracts';
+
+async function callContract() {
+  // Setup provider
+  const provider = await BakoProvider.create(
+    process.env.NETWORK_URL!,
+    { apiToken: process.env.BAKO_API_TOKEN! }
+  );
+
+  // Get vault (acts as wallet)
+  const vault = await Vault.fromAddress(
+    process.env.VAULT_ADDRESS!,
+    provider
+  );
+
+  // Connect to contract
+  const contract = MyContractAbi__factory.connect(
+    process.env.CONTRACT_ID!,
+    vault as any
+  );
+
+  // Call contract function
+  const { transactionId } = await contract.functions
+    .my_function(arg1, arg2)
+    .call();
+
+  console.log('Contract call initiated:', transactionId);
+  console.log('Waiting for signatures at https://safe.bako.global');
+
+  // Poll for completion
+  const interval = setInterval(() => {
+    console.log('⏳ Waiting for required signatures...');
+  }, 5000);
+
+  try {
+    const result = await contract.functions
+      .my_function(arg1, arg2)
+      .call();
+
+    console.log('✅ Transaction completed!');
+    console.log('Result:', result.value);
+  } finally {
+    clearInterval(interval);
+  }
+}
+
+callContract().catch(console.error);
+```
+
+## Example 4: Monitor Transaction Status
+
+```typescript
+// src/monitor.ts
+import { BakoProvider, Vault, TransactionStatus } from 'bakosafe';
+import 'dotenv/config';
+
+async function monitorTransaction(txHash: string) {
+  const provider = await BakoProvider.create(
+    process.env.NETWORK_URL!,
+    { apiToken: process.env.BAKO_API_TOKEN! }
+  );
+
+  const vault = await Vault.fromAddress(
+    process.env.VAULT_ADDRESS!,
+    provider
+  );
+
+  // Get transaction status
+  const tx = await vault.transactionFromHash(txHash);
+
+  console.log('Transaction:', txHash);
+  console.log('Status:', tx.status);
+  console.log('Signatures:', `${tx.witnesses.length}/${tx.requiredSigners}`);
+
+  // Status meanings
+  switch (tx.status) {
+    case TransactionStatus.AWAIT_REQUIREMENTS:
+      console.log('⏳ Waiting for more signatures');
+      break;
+    case TransactionStatus.PENDING_SENDER:
+      console.log('📤 Ready to send');
+      break;
+    case TransactionStatus.PROCESS_ON_CHAIN:
+      console.log('⛓️ Processing on chain');
+      break;
+    case TransactionStatus.SUCCESS:
+      console.log('✅ Completed successfully');
+      break;
+    case TransactionStatus.FAILED:
+      console.log('❌ Transaction failed');
+      break;
+    case TransactionStatus.DECLINED:
+      console.log('🚫 Transaction declined');
+      break;
+  }
+}
+
+const txHash = process.argv[2];
+if (!txHash) {
+  console.error('Usage: ts-node src/monitor.ts <tx-hash>');
+  process.exit(1);
+}
+
+monitorTransaction(txHash).catch(console.error);
+```
+
+## Example 5: Batch Operations
+
+```typescript
+// src/batch.ts
+import { BakoProvider, Vault } from 'bakosafe';
+import 'dotenv/config';
+
+interface Transfer {
+  to: string;
+  amount: string;
+  assetId: string;
+}
+
+async function batchTransfers(transfers: Transfer[]) {
+  const provider = await BakoProvider.create(
+    process.env.NETWORK_URL!,
+    { apiToken: process.env.BAKO_API_TOKEN! }
+  );
+
+  const vault = await Vault.fromAddress(
+    process.env.VAULT_ADDRESS!,
+    provider
+  );
+
+  // Create transaction with multiple assets
+  const { tx, hashTxId } = await vault.transaction({
+    name: 'Batch Transfer',
+    assets: transfers
+  });
+
+  console.log('Batch transaction created:', hashTxId);
+  console.log(`${transfers.length} transfers pending signatures`);
+
+  return hashTxId;
+}
+
+// Usage
+const transfers = [
+  { to: 'fuel1addr1...', amount: '100000', assetId: '0x...' },
+  { to: 'fuel1addr2...', amount: '200000', assetId: '0x...' },
+  { to: 'fuel1addr3...', amount: '300000', assetId: '0x...' },
+];
+
+batchTransfers(transfers).catch(console.error);
+```
+
+## Running Examples
+
+```bash
+# Install dependencies
+pnpm install
+
+# Run examples
+pnpm ts-node src/check-balance.ts
+pnpm ts-node src/transfer.ts
+pnpm ts-node src/monitor.ts <tx-hash>
+```
+
+## Reference Repository
+
+For a complete working example, see:
+[github.com/guimroque/bako-wallet-snippet](https://github.com/guimroque/bako-wallet-snippet)
+
+## Next Steps
+
+- [Provider Documentation](/sdk/provider/overview)
+- [Vault Management](/sdk/vault/overview)
+- [Transaction Details](/sdk/transactions/overview)

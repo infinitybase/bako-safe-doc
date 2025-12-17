@@ -1,0 +1,247 @@
+# Transaction Status & Monitoring
+
+Track and monitor transaction status throughout its lifecycle.
+
+## TransactionStatus Enum
+
+```typescript
+enum TransactionStatus {
+  AWAIT_REQUIREMENTS = 'await_requirements',
+  PENDING_SENDER = 'pending_sender',
+  PROCESS_ON_CHAIN = 'process_on_chain',
+  SUCCESS = 'success',
+  DECLINED = 'declined',
+  FAILED = 'failed',
+  CANCELED = 'canceled'
+}
+```
+
+## Status Descriptions
+
+| Status | Description | Next Actions |
+|--------|-------------|--------------|
+| `AWAIT_REQUIREMENTS` | Waiting for signatures | Signers need to approve |
+| `PENDING_SENDER` | Ready to execute | Call `vault.send()` |
+| `PROCESS_ON_CHAIN` | Submitted to network | Wait for confirmation |
+| `SUCCESS` | Completed successfully | Done |
+| `DECLINED` | Rejected by signers | Create new transaction |
+| `FAILED` | Execution failed | Check error, retry |
+| `CANCELED` | Manually canceled | Create new transaction |
+
+## Checking Status
+
+### Single Check
+
+```typescript
+const txData = await vault.transactionFromHash(hashTxId);
+
+console.log('Status:', txData.status);
+console.log('Signatures:', txData.witnesses.length, '/', txData.requiredSigners);
+```
+
+### ITransactionResume Structure
+
+```typescript
+interface ITransactionResume {
+  hash: string;
+  BakoSafeID: string;
+  totalSigners: number;
+  requiredSigners: number;
+  predicate: {
+    id: string;
+    address: string;
+  };
+  outputs: ITransferAsset[];
+  status: TransactionStatus;
+  witnesses?: IWitnesses[];
+  gasUsed?: string;
+  sendTime?: Date;
+  error?: string;
+}
+```
+
+## Polling for Updates
+
+```typescript
+async function pollStatus(
+  vault: Vault,
+  hashTxId: string,
+  onUpdate: (status: TransactionStatus, data: any) => void
+): Promise<TransactionStatus> {
+  const POLL_INTERVAL = 5000; // 5 seconds
+  const TIMEOUT = 300000; // 5 minutes
+
+  const startTime = Date.now();
+
+  while (Date.now() - startTime < TIMEOUT) {
+    const txData = await vault.transactionFromHash(hashTxId);
+    onUpdate(txData.status, txData);
+
+    // Terminal states
+    if (['success', 'failed', 'declined', 'canceled'].includes(txData.status)) {
+      return txData.status as TransactionStatus;
+    }
+
+    await new Promise(r => setTimeout(r, POLL_INTERVAL));
+  }
+
+  throw new Error('Polling timeout');
+}
+
+// Usage
+const finalStatus = await pollStatus(vault, hashTxId, (status, data) => {
+  console.log(`Status: ${status}`);
+  if (status === 'await_requirements') {
+    const signed = data.witnesses.filter(w => w.status === 'done').length;
+    console.log(`Signatures: ${signed}/${data.requiredSigners}`);
+  }
+});
+```
+
+## Status Handlers
+
+```typescript
+import { TransactionStatus } from 'bakosafe';
+
+function handleStatus(txData: ITransactionResume) {
+  switch (txData.status) {
+    case TransactionStatus.AWAIT_REQUIREMENTS:
+      handleAwaitingSignatures(txData);
+      break;
+
+    case TransactionStatus.PENDING_SENDER:
+      handleReadyToSend(txData);
+      break;
+
+    case TransactionStatus.PROCESS_ON_CHAIN:
+      handleProcessing(txData);
+      break;
+
+    case TransactionStatus.SUCCESS:
+      handleSuccess(txData);
+      break;
+
+    case TransactionStatus.FAILED:
+      handleFailure(txData);
+      break;
+
+    case TransactionStatus.DECLINED:
+      handleDeclined(txData);
+      break;
+
+    case TransactionStatus.CANCELED:
+      handleCanceled(txData);
+      break;
+  }
+}
+
+function handleAwaitingSignatures(txData) {
+  const signed = txData.witnesses.filter(w => w.status === 'done').length;
+  const pending = txData.requiredSigners - signed;
+  console.log(`Waiting for ${pending} more signature(s)`);
+
+  // List pending signers
+  const signedAddresses = txData.witnesses
+    .filter(w => w.status === 'done')
+    .map(w => w.account);
+
+  console.log('Signed by:', signedAddresses);
+}
+
+function handleReadyToSend(txData) {
+  console.log('All signatures collected!');
+  console.log('Transaction ready to execute');
+}
+
+function handleProcessing(txData) {
+  console.log('Transaction submitted to network');
+  console.log('Waiting for confirmation...');
+}
+
+function handleSuccess(txData) {
+  console.log('Transaction completed successfully!');
+  console.log('Gas used:', txData.gasUsed);
+  console.log('Time:', txData.sendTime);
+}
+
+function handleFailure(txData) {
+  console.error('Transaction failed:', txData.error);
+}
+
+function handleDeclined(txData) {
+  console.log('Transaction was declined by signers');
+}
+
+function handleCanceled(txData) {
+  console.log('Transaction was canceled');
+}
+```
+
+## Listing Transactions
+
+Query multiple transactions:
+
+```typescript
+interface IListTransactions {
+  to?: string;              // Filter by recipient
+  hash?: string;            // Filter by hash
+  status?: TransactionStatus[];  // Filter by status
+  perPage?: number;         // Pagination
+  page?: number;
+  orderBy?: string;
+  sort?: SortOption;
+}
+
+enum SortOption {
+  ASC = 'ASC',
+  DESC = 'DESC'
+}
+
+// Example: Get pending transactions
+const pendingTxs = await provider.listTransactions({
+  status: [TransactionStatus.AWAIT_REQUIREMENTS],
+  sort: SortOption.DESC,
+  perPage: 10
+});
+```
+
+## Building a Status Dashboard
+
+```typescript
+async function getVaultDashboard(vault: Vault) {
+  const [
+    pendingTxs,
+    recentSuccess,
+    recentFailed
+  ] = await Promise.all([
+    provider.listTransactions({
+      status: [
+        TransactionStatus.AWAIT_REQUIREMENTS,
+        TransactionStatus.PENDING_SENDER
+      ]
+    }),
+    provider.listTransactions({
+      status: [TransactionStatus.SUCCESS],
+      perPage: 5,
+      sort: SortOption.DESC
+    }),
+    provider.listTransactions({
+      status: [TransactionStatus.FAILED],
+      perPage: 5,
+      sort: SortOption.DESC
+    })
+  ]);
+
+  return {
+    pendingCount: pendingTxs.length,
+    pendingTransactions: pendingTxs,
+    recentSuccessful: recentSuccess,
+    recentFailed: recentFailed
+  };
+}
+```
+
+## Next Steps
+
+- [Examples](/sdk/examples/overview)
+- [Reference](/sdk/reference/types)

@@ -1,0 +1,192 @@
+# Contract Interaction Example
+
+Call smart contract methods from a multi-signature vault.
+
+## Overview
+
+This example demonstrates how to:
+1. Connect to a vault using API token authentication
+2. Create a contract call transaction
+3. Sign and execute the transaction
+
+## Prerequisites
+
+```bash
+npm install bakosafe fuels
+```
+
+## Complete Example
+
+```typescript
+import { BakoProvider, Vault } from 'bakosafe';
+import { Provider, bn, Contract, JsonAbi } from 'fuels';
+
+// Your contract ABI
+const CONTRACT_ABI: JsonAbi = {
+  // ... your contract ABI
+};
+
+async function callContract() {
+  // 1. Setup providers
+  const networkUrl = 'https://mainnet.fuel.network/v1/graphql';
+  const fuelProvider = new Provider(networkUrl);
+
+  const provider = await BakoProvider.create(networkUrl, {
+    apiToken: process.env.BAKO_API_TOKEN!
+  });
+
+  // 2. Load existing vault
+  const vaultAddress = 'fuel1your-vault-address...';
+  const vault = await Vault.fromAddress(vaultAddress, provider);
+
+  console.log('Vault loaded:', vault.address.toB256());
+
+  // 3. Create contract instance
+  const contractId = '0xYourContractId...';
+  const contract = new Contract(contractId, CONTRACT_ABI, fuelProvider);
+
+  // 4. Build contract call
+  const scope = contract.functions
+    .your_method(param1, param2)
+    .callParams({
+      forward: {
+        amount: bn(1000),
+        assetId: provider.getBaseAssetId()
+      }
+    });
+
+  // 5. Get transaction request from scope
+  const request = await scope.getTransactionRequest();
+
+  // 6. Create vault transaction with contract call
+  const { tx, hashTxId } = await vault.transaction({
+    name: 'Contract Call',
+    witnesses: request.witnesses,
+    assets: [] // Assets handled by forward in callParams
+  });
+
+  // 7. Add contract inputs/outputs to transaction
+  tx.addContractInputAndOutput(contractId);
+
+  console.log('Transaction created:', hashTxId);
+
+  // 8. Sign the transaction
+  await vault.sign(hashTxId);
+  console.log('Transaction signed');
+
+  // 9. Check if threshold met (for multi-sig)
+  const details = await provider.service.getTransaction(hashTxId);
+
+  if (details.status === 'pending_sender') {
+    // All signatures collected, ready to send
+    const result = await vault.send(hashTxId);
+    console.log('Transaction sent:', result.id);
+  } else {
+    console.log('Waiting for more signatures...');
+    console.log('Current status:', details.status);
+  }
+}
+
+callContract().catch(console.error);
+```
+
+## Step-by-Step Breakdown
+
+### 1. Provider Setup
+
+```typescript
+const fuelProvider = new Provider(networkUrl);
+const provider = await BakoProvider.create(networkUrl, {
+  apiToken: process.env.BAKO_API_TOKEN!
+});
+```
+
+Two providers are needed:
+- `fuelProvider`: Native Fuel provider for contract interactions
+- `BakoProvider`: Bako provider for vault management
+
+### 2. Load Vault
+
+```typescript
+const vault = await Vault.fromAddress(vaultAddress, provider);
+```
+
+Recovers an existing vault by its address. The vault contains the multi-sig configuration.
+
+### 3. Build Contract Call
+
+```typescript
+const scope = contract.functions
+  .your_method(param1, param2)
+  .callParams({
+    forward: {
+      amount: bn(1000),
+      assetId: provider.getBaseAssetId()
+    }
+  });
+```
+
+Build the contract call scope with:
+- Method name and parameters
+- Optional forwarded assets
+
+### 4. Create Vault Transaction
+
+```typescript
+const { tx, hashTxId } = await vault.transaction({
+  name: 'Contract Call',
+  witnesses: request.witnesses,
+  assets: []
+});
+```
+
+Creates a Bako transaction that wraps the contract call.
+
+### 5. Sign and Send
+
+```typescript
+await vault.sign(hashTxId);
+await vault.send(hashTxId);
+```
+
+Sign with current signer and send when threshold is met.
+
+## With Multiple Signers
+
+```typescript
+// Signer 1 creates and signs
+const { tx, hashTxId } = await vault.transaction(params);
+await vault.sign(hashTxId);
+
+// Share hashTxId with other signers...
+
+// Signer 2 signs
+const vault2 = await Vault.fromAddress(vaultAddress, provider2);
+await vault2.sign(hashTxId);
+
+// After all signatures collected
+const result = await vault.send(hashTxId);
+```
+
+## Error Handling
+
+```typescript
+try {
+  const { tx, hashTxId } = await vault.transaction(params);
+  await vault.sign(hashTxId);
+  await vault.send(hashTxId);
+} catch (error) {
+  if (error.message.includes('contract')) {
+    console.error('Contract execution failed');
+  } else if (error.message.includes('gas')) {
+    console.error('Insufficient gas');
+  } else {
+    console.error('Transaction failed:', error);
+  }
+}
+```
+
+## Next Steps
+
+- [Token Transfer Example](/sdk/examples/transfer)
+- [Transaction Status](/sdk/transactions/status)

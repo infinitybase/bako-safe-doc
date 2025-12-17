@@ -1,0 +1,179 @@
+# Recovering Vaults
+
+Learn how to recover and access existing vaults.
+
+## Recovery Methods
+
+### By Address
+
+The most common method - recover a vault using its predicate address:
+
+```typescript
+import { BakoProvider, Vault } from 'bakosafe';
+
+const provider = await BakoProvider.create(networkUrl, { apiToken });
+
+const vault = await Vault.fromAddress(
+  'fuel1vault-address-here...',
+  provider
+);
+
+console.log('Recovered vault:', vault.address.toString());
+console.log('Signers:', vault.getConfigurable().SIGNERS);
+```
+
+### From Provider (API Token)
+
+When authenticated with API token, the vault address is in the provider:
+
+```typescript
+const provider = await BakoProvider.create(networkUrl, { apiToken });
+
+// Uses address from cliAuth
+const vault = Vault.createFromProvider(provider);
+```
+
+### By Predicate ID
+
+If you have the predicate ID from the Bako ecosystem:
+
+```typescript
+const predicate = await provider.findByAddress(predicateId);
+
+const vault = await Vault.fromAddress(
+  predicate.predicateAddress,
+  provider
+);
+```
+
+## fromAddress() Details
+
+The `fromAddress` static method:
+
+```typescript
+static async fromAddress(
+  reference: string,       // Vault address
+  provider: BakoProvider   // Authenticated provider
+): Promise<Vault>
+```
+
+It performs:
+1. Fetches vault configuration from Bako API
+2. Validates the predicate exists
+3. Reconstructs the Vault instance with correct configuration
+
+## Recovery Example
+
+```typescript
+import { BakoProvider, Vault } from 'bakosafe';
+
+async function recoverAndInspect(vaultAddress: string) {
+  const provider = await BakoProvider.create(
+    'https://mainnet.fuel.network/v1/graphql',
+    { apiToken: process.env.BAKO_API_TOKEN }
+  );
+
+  // Recover vault
+  const vault = await Vault.fromAddress(vaultAddress, provider);
+
+  // Inspect configuration
+  const config = vault.getConfigurable();
+
+  console.log('Vault Information:');
+  console.log('  Address:', vault.address.toString());
+  console.log('  Version:', vault.version);
+  console.log('  Type:', config.type);
+
+  if (config.type === 0) { // BAKO type
+    console.log('  Signers:', config.SIGNERS);
+    console.log('  Threshold:', config.SIGNATURES_COUNT);
+  }
+
+  // Check balances
+  const balances = await vault.getBalances();
+  console.log('  Balances:');
+  balances.forEach(b => {
+    console.log(`    ${b.assetId}: ${b.amount.toString()}`);
+  });
+
+  return vault;
+}
+```
+
+## Checking Vault Compatibility
+
+Before recovering, you can check if a configuration is compatible:
+
+```typescript
+import { Vault } from 'bakosafe';
+
+const isCompatible = Vault.compatible(
+  configurable,  // VaultConfigurable or address string
+  version        // Predicate version
+);
+
+if (isCompatible) {
+  const vault = await Vault.fromAddress(address, provider);
+}
+```
+
+## Error Handling
+
+```typescript
+async function safeRecover(address: string) {
+  try {
+    const vault = await Vault.fromAddress(address, provider);
+    return vault;
+  } catch (error) {
+    if (error.message.includes('not found')) {
+      console.error('Vault does not exist at this address');
+    } else if (error.message.includes('unauthorized')) {
+      console.error('Not authorized to access this vault');
+    } else if (error.message.includes('invalid address')) {
+      console.error('Invalid vault address format');
+    } else {
+      console.error('Recovery failed:', error.message);
+    }
+    throw error;
+  }
+}
+```
+
+## Recovering with Different Wallet Types
+
+The SDK supports recovering vaults regardless of which wallet type created them:
+
+```typescript
+// Vault created with Fuel wallet
+const fuelVault = await Vault.fromAddress(fuelCreatedAddress, provider);
+
+// Vault created with EVM wallet
+const evmVault = await Vault.fromAddress(evmCreatedAddress, provider);
+
+// Vault created with WebAuthn
+const webauthnVault = await Vault.fromAddress(webauthnCreatedAddress, provider);
+```
+
+## Caching Recovered Vaults
+
+For performance, cache recovered vaults:
+
+```typescript
+const vaultCache = new Map<string, Vault>();
+
+async function getVault(address: string): Promise<Vault> {
+  if (vaultCache.has(address)) {
+    return vaultCache.get(address)!;
+  }
+
+  const vault = await Vault.fromAddress(address, provider);
+  vaultCache.set(address, vault);
+  return vault;
+}
+```
+
+## Next Steps
+
+- [Vault Configuration](/sdk/vault/configuration)
+- [Vault Methods](/sdk/vault/methods)
+- [Creating Transactions](/sdk/transactions/creating)

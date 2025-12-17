@@ -1,0 +1,264 @@
+# Token Transfer Example
+
+Send native assets and tokens from a multi-signature vault.
+
+## Overview
+
+This example demonstrates how to:
+1. Create a transfer transaction from a vault
+2. Transfer ETH (base asset) to another address
+3. Handle multi-signature approval flow
+
+## Prerequisites
+
+```bash
+npm install bakosafe fuels
+```
+
+## Complete Example
+
+```typescript
+import { BakoProvider, Vault } from 'bakosafe';
+import { Provider, bn } from 'fuels';
+
+async function transferTokens() {
+  // 1. Setup provider with API token
+  const networkUrl = 'https://mainnet.fuel.network/v1/graphql';
+
+  const provider = await BakoProvider.create(networkUrl, {
+    apiToken: process.env.BAKO_API_TOKEN!
+  });
+
+  // 2. Load vault
+  const vaultAddress = 'fuel1your-vault-address...';
+  const vault = await Vault.fromAddress(vaultAddress, provider);
+
+  console.log('Vault loaded:', vault.address.toB256());
+
+  // 3. Get vault balance
+  const balances = await vault.getBalances();
+  console.log('Vault balances:', balances);
+
+  // 4. Define transfer parameters
+  const recipientAddress = 'fuel1recipient-address...';
+  const transferAmount = bn.parseUnits('0.1'); // 0.1 ETH
+  const baseAssetId = provider.getBaseAssetId();
+
+  // 5. Create transfer transaction
+  const { tx, hashTxId } = await vault.transaction({
+    name: 'Transfer 0.1 ETH',
+    assets: [
+      {
+        assetId: baseAssetId,
+        amount: transferAmount.toString(),
+        to: recipientAddress
+      }
+    ]
+  });
+
+  console.log('Transaction created:', hashTxId);
+
+  // 6. Sign the transaction
+  await vault.sign(hashTxId);
+  console.log('Transaction signed');
+
+  // 7. Check status and send if ready
+  const details = await provider.service.getTransaction(hashTxId);
+
+  if (details.status === 'pending_sender') {
+    const result = await vault.send(hashTxId);
+    console.log('Transfer sent!');
+    console.log('Transaction ID:', result.id);
+  } else {
+    console.log('Waiting for more signatures...');
+    console.log('Signatures:', details.witnesses?.length || 0);
+    console.log('Required:', vault.getConfigurable().SIGNATURES_COUNT);
+  }
+}
+
+transferTokens().catch(console.error);
+```
+
+## Multiple Asset Transfer
+
+Send multiple assets in a single transaction:
+
+```typescript
+const { tx, hashTxId } = await vault.transaction({
+  name: 'Multi-asset Transfer',
+  assets: [
+    {
+      assetId: baseAssetId,
+      amount: bn.parseUnits('0.1').toString(),
+      to: recipient1
+    },
+    {
+      assetId: customTokenId,
+      amount: bn(1000).toString(),
+      to: recipient2
+    }
+  ]
+});
+```
+
+## Transfer to Multiple Recipients
+
+```typescript
+const recipients = [
+  { address: 'fuel1abc...', amount: '100000' },
+  { address: 'fuel1def...', amount: '200000' },
+  { address: 'fuel1ghi...', amount: '300000' }
+];
+
+const { tx, hashTxId } = await vault.transaction({
+  name: 'Batch Transfer',
+  assets: recipients.map(r => ({
+    assetId: baseAssetId,
+    amount: r.amount,
+    to: r.address
+  }))
+});
+```
+
+## Full Multi-Signer Flow
+
+```typescript
+import { BakoProvider, Vault } from 'bakosafe';
+import { bn } from 'fuels';
+
+// Configuration
+const VAULT_ADDRESS = 'fuel1...';
+const NETWORK_URL = 'https://mainnet.fuel.network/v1/graphql';
+
+// Signer 1: Create and sign transaction
+async function createTransfer() {
+  const provider = await BakoProvider.create(NETWORK_URL, {
+    apiToken: process.env.SIGNER_1_API_TOKEN!
+  });
+
+  const vault = await Vault.fromAddress(VAULT_ADDRESS, provider);
+
+  const { tx, hashTxId } = await vault.transaction({
+    name: 'Team Payment',
+    assets: [{
+      assetId: provider.getBaseAssetId(),
+      amount: bn.parseUnits('1').toString(),
+      to: 'fuel1recipient...'
+    }]
+  });
+
+  await vault.sign(hashTxId);
+  console.log('Transaction created and signed by Signer 1');
+  console.log('Hash:', hashTxId);
+
+  return hashTxId;
+}
+
+// Signer 2: Sign existing transaction
+async function signTransfer(hashTxId: string) {
+  const provider = await BakoProvider.create(NETWORK_URL, {
+    apiToken: process.env.SIGNER_2_API_TOKEN!
+  });
+
+  const vault = await Vault.fromAddress(VAULT_ADDRESS, provider);
+
+  await vault.sign(hashTxId);
+  console.log('Transaction signed by Signer 2');
+}
+
+// Execute transfer after all signatures
+async function executeTransfer(hashTxId: string) {
+  const provider = await BakoProvider.create(NETWORK_URL, {
+    apiToken: process.env.SIGNER_1_API_TOKEN!
+  });
+
+  const vault = await Vault.fromAddress(VAULT_ADDRESS, provider);
+
+  // Verify ready to send
+  const details = await provider.service.getTransaction(hashTxId);
+
+  if (details.status !== 'pending_sender') {
+    throw new Error(`Not ready to send. Status: ${details.status}`);
+  }
+
+  const result = await vault.send(hashTxId);
+  console.log('Transfer executed:', result.id);
+}
+
+// Run the flow
+async function main() {
+  const hashTxId = await createTransfer();
+  await signTransfer(hashTxId);
+  await executeTransfer(hashTxId);
+}
+
+main().catch(console.error);
+```
+
+## Checking Balance Before Transfer
+
+```typescript
+import { bn } from 'fuels';
+
+async function safeTransfer(
+  vault: Vault,
+  to: string,
+  amount: string,
+  assetId: string
+) {
+  // Get current balance
+  const balances = await vault.getBalances();
+  const balance = balances.find(b => b.assetId === assetId);
+
+  if (!balance || bn(balance.amount).lt(bn(amount))) {
+    throw new Error('Insufficient balance');
+  }
+
+  // Proceed with transfer
+  const { tx, hashTxId } = await vault.transaction({
+    name: 'Safe Transfer',
+    assets: [{
+      assetId,
+      amount,
+      to
+    }]
+  });
+
+  return { tx, hashTxId };
+}
+```
+
+## Error Handling
+
+```typescript
+try {
+  const { tx, hashTxId } = await vault.transaction({
+    name: 'Transfer',
+    assets: [{
+      assetId: baseAssetId,
+      amount: transferAmount.toString(),
+      to: recipient
+    }]
+  });
+
+  await vault.sign(hashTxId);
+  await vault.send(hashTxId);
+
+} catch (error) {
+  if (error.message.includes('Insufficient')) {
+    console.error('Not enough balance for transfer');
+  } else if (error.message.includes('Invalid')) {
+    console.error('Invalid recipient address');
+  } else if (error.message.includes('credentials')) {
+    console.error('Authentication failed');
+  } else {
+    console.error('Transfer failed:', error.message);
+  }
+}
+```
+
+## Next Steps
+
+- [Contract Interaction](/sdk/examples/contract-call)
+- [Transaction Signing](/sdk/transactions/signing)
+- [Transaction Status](/sdk/transactions/status)

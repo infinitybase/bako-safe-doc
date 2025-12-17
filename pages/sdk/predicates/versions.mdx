@@ -1,0 +1,170 @@
+# Predicate Versions
+
+Available predicate versions and their capabilities.
+
+## Current Versions
+
+### Bako Labs Predicates
+
+#### Multi-sig with Fuel & WebAuthn
+```
+ID: 0x0ec304f98efc18964de98c63be50d2360572a155b16bcb0f3718c685c70a00aa
+Developer: Bako Labs
+Wallet Origins: fuel, webauthn
+Deployed: Testnet, Mainnet
+Toolchain: Fuels 0.96.1, Forc 0.65.2
+```
+
+#### Updated Multi-sig
+```
+ID: 0x6ca3bcd759b944b128e9007e2fa75bf700f28c39ce7b34fc241e2c57bf02bdff
+Developer: Bako Labs
+Wallet Origins: fuel, webauthn
+Deployed: Testnet, Mainnet
+Toolchain: Fuels 0.99.0, Forc 0.66.6
+```
+
+#### EVM Signature Support
+```
+ID: 0x967aaa71b3db34acd8104ed1d7ff3900e67cff3d153a0ffa86d85957f579aa6a
+Developer: Bako Labs
+Description: Enable EVM signature verification
+Wallet Origins: fuel, webauthn, evm
+Deployed: Testnet, Mainnet
+Toolchain: Fuels 0.101.1, Forc 0.68.1
+```
+
+### Fuel Labs Predicates
+
+#### SVM Signature
+```
+ID: 0x15f8fd16e3281aa89e7567c5f8423f77b34983a8cd7d0a1714100c8bc3d4c8d0
+Developer: Fuel Labs
+Wallet Origins: svm
+Deployed: Testnet, Mainnet
+```
+
+#### EVM Connectors
+```
+ID: 0xfdac03fc617c264fa6f325fd6f4d2a5470bf44cfbd33bc11efb3bf8b7ee2e938
+ID: 0x3499b76bcb35d8bc68fb2fa74fbe1760461f64f0ac19890c0bacb69377ac19d2
+ID: 0xbbae06500cd11e6c1d024ac587198cb30c504bf14ba16548f19e21fa9e8f5f95
+Developer: Fuel Labs
+Wallet Origins: evm
+Deployed: Testnet, Mainnet
+```
+
+## Version Selection
+
+### Automatic (Recommended)
+
+```typescript
+import { loadPredicate, getLatestPredicateVersion } from 'bakosafe';
+
+// SDK automatically selects best version
+const predicate = await loadPredicate(provider);
+
+// Or get latest for wallet type
+const version = await getLatestPredicateVersion('fuel');
+```
+
+### Manual Selection
+
+```typescript
+import { Vault, loadPredicate } from 'bakosafe';
+
+const specificVersion = '0x6ca3bcd759b944b128e9007e2fa75bf700f28c39ce7b34fc241e2c57bf02bdff';
+
+const vault = Vault.createBakoVault(
+  provider,
+  config,
+  specificVersion
+);
+```
+
+## Version Utilities
+
+### Get Compatible Versions
+
+```typescript
+import { getCompatiblePredicateVersions } from 'bakosafe';
+
+// Get all versions compatible with EVM
+const evmVersions = getCompatiblePredicateVersions('evm');
+```
+
+### Get All Versions
+
+```typescript
+import { getAllPredicateVersions, getAllVersionsDetails } from 'bakosafe';
+
+// Get version hashes
+const versions = getAllPredicateVersions();
+console.log('Available versions:', versions);
+
+// Get detailed info
+const details = getAllVersionsDetails();
+details.forEach(v => {
+  console.log(`${v.id}: ${v.walletOrigins.join(', ')}`);
+});
+```
+
+### Check Version Compatibility
+
+```typescript
+import { VaultFactory } from 'bakosafe';
+
+const compatible = VaultFactory.isConfigurationCompatible(
+  myConfig,
+  versionHash
+);
+```
+
+## Legacy Connector Support
+
+For existing vaults with older predicate versions:
+
+```typescript
+import { legacyConnectorVersion } from 'bakosafe';
+
+// Get compatible version for legacy wallet
+const version = await legacyConnectorVersion(
+  walletAddress,
+  provider
+);
+```
+
+## Version Lifecycle
+
+1. **Active**: Current recommended version
+2. **Supported**: Still works, may miss new features
+3. **Deprecated**: Will be removed in future
+4. **Inactive**: No longer supported
+
+Check version status:
+
+```typescript
+const details = getAllVersionsDetails();
+const version = details.find(v => v.id === myVersionId);
+
+if (version?.active) {
+  console.log('Version is active');
+} else {
+  console.log('Consider upgrading to newer version');
+}
+```
+
+## Network Deployment
+
+| Version | Testnet | Mainnet |
+|---------|---------|---------|
+| Bako v1 | Yes | Yes |
+| Bako v2 | Yes | Yes |
+| Bako v3 (EVM) | Yes | Yes |
+| Fuel SVM | Yes | Yes |
+| Fuel EVM | Yes | Yes |
+
+## Next Steps
+
+- [Wallet Type Support](/sdk/predicates/wallet-types)
+- [Creating Vaults](/sdk/vault/creating)

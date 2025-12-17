@@ -1,0 +1,188 @@
+# Address Utilities
+
+The `AddressUtils` class provides functions for address conversion and validation across different wallet types.
+
+## Import
+
+```typescript
+import { AddressUtils } from 'bakosafe';
+```
+
+## Methods
+
+### isPasskey()
+
+Check if an address is a passkey/WebAuthn address.
+
+```typescript
+static isPasskey(value: string): boolean
+```
+
+**Example:**
+```typescript
+const isPasskey = AddressUtils.isPasskey('pkau1qz...');
+// true
+
+const isPasskey = AddressUtils.isPasskey('fuel1qz...');
+// false
+```
+
+### isSocial()
+
+Check if an address is a social login address.
+
+```typescript
+static isSocial(value: string): boolean
+```
+
+### isEvm()
+
+Check if an address is a valid EVM address.
+
+```typescript
+static isEvm(address: string): boolean
+```
+
+**Example:**
+```typescript
+const isEvm = AddressUtils.isEvm('0x742d35Cc6634C0532925a3b844Bc9e7595f8fE34');
+// true
+
+const isEvm = AddressUtils.isEvm('fuel1qz...');
+// false
+```
+
+### toBech32()
+
+Convert a hex address to Bech32 format with specified prefix.
+
+```typescript
+static toBech32(address: string, prefix: Bech32Prefix): string
+```
+
+**Example:**
+```typescript
+const bech32 = AddressUtils.toBech32(
+  '0x123abc...',
+  'fuel'
+);
+// fuel1qz...
+```
+
+### fromBech32()
+
+Decode a Bech32 address back to hex format.
+
+```typescript
+static fromBech32(address: Bech32): string
+```
+
+**Example:**
+```typescript
+const hex = AddressUtils.fromBech32('fuel1qz...');
+// 0x123abc...
+```
+
+### parseFuelAddressToEth()
+
+Convert a Fuel address to Ethereum-compatible hex format.
+
+```typescript
+static parseFuelAddressToEth(address: string): string
+```
+
+**Example:**
+```typescript
+const ethAddress = AddressUtils.parseFuelAddressToEth('fuel1qz...');
+// 0x742d35Cc...
+```
+
+### hex2string()
+
+Convert hex addresses array to string format, filtering zero bytes.
+
+```typescript
+static hex2string(add: string[]): string[]
+```
+
+## Bech32 Prefixes
+
+| Prefix | Use Case |
+|--------|----------|
+| `fuel` | Standard Fuel addresses |
+| `pkau` | Passkey/WebAuthn addresses |
+| `social` | Social login addresses |
+
+## Address Type Detection
+
+```typescript
+function getAddressType(address: string): string {
+  if (AddressUtils.isPasskey(address)) {
+    return 'passkey';
+  }
+  if (AddressUtils.isSocial(address)) {
+    return 'social';
+  }
+  if (AddressUtils.isEvm(address)) {
+    return 'evm';
+  }
+  if (address.startsWith('fuel1')) {
+    return 'fuel';
+  }
+  return 'unknown';
+}
+```
+
+## Conversion Examples
+
+### Fuel to EVM
+
+```typescript
+const fuelAddress = 'fuel1qz2x...';
+const evmAddress = AddressUtils.parseFuelAddressToEth(fuelAddress);
+console.log('EVM format:', evmAddress);
+```
+
+### Hex to Bech32
+
+```typescript
+const hexAddress = '0x123abc456def...';
+const fuelAddress = AddressUtils.toBech32(hexAddress, 'fuel');
+console.log('Fuel format:', fuelAddress);
+```
+
+### Bech32 to Hex
+
+```typescript
+const fuelAddress = 'fuel1qz2x...';
+const hexAddress = AddressUtils.fromBech32(fuelAddress);
+console.log('Hex format:', hexAddress);
+```
+
+## Validation Helper
+
+```typescript
+function validateSignerAddress(address: string): boolean {
+  // Check if it's any supported format
+  if (address.startsWith('fuel1')) return true;
+  if (AddressUtils.isEvm(address)) return true;
+  if (AddressUtils.isPasskey(address)) return true;
+  if (AddressUtils.isSocial(address)) return true;
+
+  return false;
+}
+
+// Usage
+const signers = [
+  'fuel1abc...',
+  '0x742d35Cc...',
+  'pkau1xyz...'
+];
+
+const allValid = signers.every(validateSignerAddress);
+```
+
+## Next Steps
+
+- [Signature Coders](/sdk/utilities/coders)
+- [Error Handling](/sdk/utilities/errors)

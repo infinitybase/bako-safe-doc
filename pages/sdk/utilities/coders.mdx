@@ -1,0 +1,183 @@
+# Signature Coders
+
+The coders module handles encoding and decoding of signatures for different wallet types.
+
+## SignatureType Enum
+
+```typescript
+enum SignatureType {
+  WebAuthn = 0,      // Passkey/biometric signatures
+  Fuel = 1,          // Native Fuel wallet signatures
+  Evm = 2,           // EVM wallet signatures
+  RawNoPrefix = 9    // Raw signatures without BAKO prefix
+}
+```
+
+## Signature Type Hex Values
+
+```typescript
+const SIGNATURE_TYPE_HEX = {
+  WebAuthn: '00000000',
+  Fuel: '00000001',
+  Evm: '00000002',
+  RawNoPrefix: '00000009'
+};
+```
+
+## Input Types
+
+Each signature type has a specific input format:
+
+### FuelInput
+
+```typescript
+interface FuelInput {
+  type: SignatureType.Fuel;
+  signature: string;
+}
+```
+
+### EvmInput
+
+```typescript
+interface EvmInput {
+  type: SignatureType.Evm;
+  signature: string;
+}
+```
+
+### WebAuthnInput
+
+```typescript
+interface WebAuthnInput {
+  type: SignatureType.WebAuthn;
+  signature: string;
+  prefix: string;
+  suffix: string;
+  authData: string;
+}
+```
+
+### RawNoPrefixInput
+
+```typescript
+interface RawNoPrefixInput {
+  type: SignatureType.RawNoPrefix;
+  signature: string;
+}
+```
+
+## SignatureInput Union
+
+```typescript
+type SignatureInput =
+  | FuelInput
+  | EvmInput
+  | WebAuthnInput
+  | RawNoPrefixInput;
+```
+
+## Encoding Operations
+
+### CoderOperation
+
+```typescript
+interface CoderOperation {
+  input: SignatureInput;
+  encoding: 'signature' | 'transaction';
+}
+```
+
+## Using Vault Signature Encoding
+
+The Vault class provides a method for encoding signatures:
+
+```typescript
+const vault = await Vault.fromAddress(address, provider);
+
+// Encode a signature for the vault
+const encodedSignature = vault.encodeSignature(
+  signerAddress,
+  rawSignature
+);
+```
+
+## Signature Flow
+
+```
+┌─────────────────────────────────────────────────────┐
+│                  Signature Flow                      │
+├─────────────────────────────────────────────────────┤
+│                                                      │
+│  1. User signs message with wallet                   │
+│     └── Raw signature produced                       │
+│                                                      │
+│  2. Detect signature type                            │
+│     └── Based on wallet/address type                 │
+│                                                      │
+│  3. Create typed input                               │
+│     └── FuelInput, EvmInput, WebAuthnInput, etc.     │
+│                                                      │
+│  4. Encode for predicate                             │
+│     └── Format for on-chain verification             │
+│                                                      │
+│  5. Add to transaction witnesses                     │
+│     └── Ready for execution                          │
+│                                                      │
+└─────────────────────────────────────────────────────┘
+```
+
+## Version-Specific Encoding
+
+Some predicate versions require specific byte encoding:
+
+```typescript
+type BytesVersion = string;
+
+const BYTE_VERSION_LIST: BytesVersion[] = [
+  // Versions requiring byte array encoding
+];
+```
+
+## Example: Manual Signature Encoding
+
+```typescript
+import { SignatureType } from 'bakosafe';
+
+function createSignatureInput(
+  walletType: string,
+  signature: string,
+  extra?: any
+): SignatureInput {
+  switch (walletType) {
+    case 'fuel':
+      return {
+        type: SignatureType.Fuel,
+        signature
+      };
+
+    case 'evm':
+      return {
+        type: SignatureType.Evm,
+        signature
+      };
+
+    case 'webauthn':
+      return {
+        type: SignatureType.WebAuthn,
+        signature,
+        prefix: extra.prefix,
+        suffix: extra.suffix,
+        authData: extra.authData
+      };
+
+    default:
+      throw new Error(`Unknown wallet type: ${walletType}`);
+  }
+}
+```
+
+## Next Steps
+
+- [Error Handling](/sdk/utilities/errors)
+- [Signing Transactions](/sdk/transactions/signing)

@@ -1,0 +1,299 @@
+# Vault Methods
+
+Complete reference of Vault class methods.
+
+## Static Methods
+
+### createBakoVault()
+
+Create a multi-signature vault.
+
+```typescript
+static createBakoVault(
+  provider: Provider | BakoProvider,
+  config: BakoConfigurableType,
+  version?: string
+): Vault
+```
+
+### createConnectorVault()
+
+Create a single-signer connector vault.
+
+```typescript
+static createConnectorVault(
+  provider: Provider | BakoProvider,
+  config: ConnectorConfigurableType,
+  version?: string
+): Vault
+```
+
+### createFromProvider()
+
+Create vault from BakoProvider credentials.
+
+```typescript
+static createFromProvider(
+  provider: BakoProvider,
+  version?: string
+): Vault
+```
+
+### fromAddress()
+
+Recover vault from address.
+
+```typescript
+static async fromAddress(
+  reference: string,
+  provider: BakoProvider
+): Promise<Vault>
+```
+
+### compatible()
+
+Check configuration compatibility.
+
+```typescript
+static compatible(
+  config: VaultConfigurable | string,
+  version: string
+): boolean
+```
+
+## Instance Methods
+
+### transaction()
+
+Create a new transaction.
+
+```typescript
+async transaction(
+  params: VaultTransaction
+): Promise<{
+  tx: TransactionRequest;
+  hashTxId: string;
+  encodedTxId: string;
+}>
+```
+
+**Example:**
+```typescript
+const { tx, hashTxId } = await vault.transaction({
+  name: 'Payment',
+  assets: [{
+    assetId: '0x...',
+    amount: '1000000',
+    to: 'fuel1recipient...'
+  }]
+});
+```
+
+### BakoTransfer()
+
+Prepare a transaction with Bako configuration.
+
+```typescript
+async BakoTransfer(
+  tx: TransactionRequestLike,
+  options?: { name?: string }
+): Promise<{
+  tx: TransactionRequest;
+  hashTxId: string;
+  encodedTxId: string;
+}>
+```
+
+### send()
+
+Send a transaction to the network.
+
+```typescript
+async send(
+  tx: TransactionRequestLike
+): Promise<TransactionResponse>
+```
+
+**Example:**
+```typescript
+const { tx } = await vault.transaction(params);
+// ... collect signatures ...
+const result = await vault.send(tx);
+console.log('Transaction ID:', result.id);
+```
+
+### sendTransaction()
+
+Alternative method to send transaction.
+
+```typescript
+async sendTransaction(
+  transactionRequestLike: TransactionRequestLike
+): Promise<TransactionResponse>
+```
+
+### prepareTransaction()
+
+Prepare and estimate gas for transaction.
+
+```typescript
+async prepareTransaction<T extends TransactionRequest>(
+  transactionRequest: T
+): Promise<T>
+```
+
+### save()
+
+Save vault to Bako ecosystem.
+
+```typescript
+async save(
+  params?: {
+    name?: string;
+    description?: string;
+  }
+): Promise<PredicateResponse>
+```
+
+**Example:**
+```typescript
+const response = await vault.save({
+  name: 'My Treasury',
+  description: 'Company funds'
+});
+```
+
+### transactionFromHash()
+
+Get transaction by hash.
+
+```typescript
+async transactionFromHash(
+  hash: string
+): Promise<TransactionResponse>
+```
+
+### getConfigurable()
+
+Get vault configuration.
+
+```typescript
+getConfigurable(): VaultConfig
+```
+
+**Example:**
+```typescript
+const config = vault.getConfigurable();
+if (config.type === 0) {
+  console.log('Signers:', config.SIGNERS);
+}
+```
+
+### encodeSignature()
+
+Encode a signature for the vault.
+
+```typescript
+encodeSignature(
+  walletAddress: string,
+  signature: SigLoose
+): string
+```
+
+### maxGasUsed()
+
+Calculate maximum gas for vault operations.
+
+```typescript
+async maxGasUsed(): Promise<BN>
+```
+
+## Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `bakoFee` | `number` | Bako service fee |
+| `maxSigners` | `number` | Maximum allowed signers |
+| `configurable` | `VaultConfigurable` | Vault configuration |
+| `predicateVersion` | `string` | Predicate contract version |
+| `allowedRecipients` | `GetAddressTypeResponse[]` | Allowed transfer recipients |
+| `version` | `string` | Current version (getter) |
+| `provider` | `Provider \| BakoProvider` | Network provider (getter/setter) |
+
+## Inherited from Predicate
+
+The Vault class extends Fuel's `Predicate` class and inherits:
+
+- `address` - Vault address
+- `getBalances()` - Get all asset balances
+- `getBalance(assetId)` - Get specific asset balance
+- `transfer()` - Transfer assets
+- All other Predicate methods
+
+## Usage Examples
+
+### Complete Transaction Flow
+
+```typescript
+const vault = await Vault.fromAddress(address, provider);
+
+// 1. Create transaction
+const { tx, hashTxId } = await vault.transaction({
+  name: 'Weekly Payment',
+  assets: [{
+    assetId: ETH_ASSET_ID,
+    amount: '500000000', // 0.5 ETH
+    to: recipientAddress
+  }]
+});
+
+console.log('Transaction hash:', hashTxId);
+console.log('Awaiting signatures at safe.bako.global');
+
+// 2. Wait for signatures (handled by Bako UI)
+// ...
+
+// 3. Send when ready
+const result = await vault.send(tx);
+console.log('Sent! TX ID:', result.id);
+```
+
+### Multi-Asset Transfer
+
+```typescript
+const { tx } = await vault.transaction({
+  name: 'Multi-Asset Distribution',
+  assets: [
+    { assetId: ETH_ID, amount: '100000', to: recipient1 },
+    { assetId: USDC_ID, amount: '500000', to: recipient2 },
+    { assetId: NFT_ID, amount: '1', to: recipient3 }
+  ]
+});
+```
+
+### Check Balance Before Transfer
+
+```typescript
+const vault = await Vault.fromAddress(address, provider);
+
+const balance = await vault.getBalance(ETH_ASSET_ID);
+const transferAmount = bn('100000');
+
+if (balance.lt(transferAmount)) {
+  throw new Error('Insufficient balance');
+}
+
+const { tx } = await vault.transaction({
+  name: 'Transfer',
+  assets: [{
+    assetId: ETH_ASSET_ID,
+    amount: transferAmount.toString(),
+    to: recipient
+  }]
+});
+```
+
+## Next Steps
+
+- [Transaction Overview](/sdk/transactions/overview)
+- [Creating Transactions](/sdk/transactions/creating)

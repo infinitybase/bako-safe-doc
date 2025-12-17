@@ -1,192 +1,273 @@
-1. **Clone the repository**
+# Installation & Setup
 
-   In this walkthrough we are going to use a React template with TypeScript and Chakra UI.
+Complete guide to integrating the Bako Safe Connector in your dApp.
 
-   ```tsx
-    git clone https://github.com/infinitybase/bako-safe-dapp
-   ```
+## Installation
 
-1. **Install dependencies**
+```bash
+npm install bakosafe fuels @fuels/connectors @fuels/react
+```
 
-   - fuels@0.76.12: the fuels SDK for TypeScript
-   - bako-safe@0.0.51: the Bako Safe SDK for interacting with resources
-   - @fuel-wallet/react@0.15.2: the fuels wallet for React
-   - @fuel-wallet/sdk@0.15.2: the fuels wallet SDK
-   - @fuels/react@0.15.3: the fuels SDK for React
+## Basic Setup
 
-   ```tsx
-   cd bako-safe-dapp &&
-   yarn &&
-   ```
+### 1. Configure FuelProvider
 
-1. **Understanding our project**
+Wrap your application with the Fuel provider and include the BSafeConnector:
 
-   In the file **`src/App.tsx`**, we add the Fuel provider with the Bako Safe connector.
+```tsx
+// main.tsx or _app.tsx
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { FuelProvider } from '@fuels/react';
+import { BSafeConnector } from 'bakosafe';
+import App from './App';
 
-   ```tsx
-   import React from 'react'
-   import ReactDOM from 'react-dom/client'
-   import App from './App.tsx'
-   import { FuelProvider } from '@fuel-wallet/react'
-   import { BSafeConnector } from 'bsafe'
-   import { ChakraProvider } from '@chakra-ui/react'
-   import { defaultTheme } from './themes/default.ts'
+// Create connector instance
+const bsafeConnector = new BSafeConnector();
 
-   const bsafe = new BSafeConnector()
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <FuelProvider
+      theme="dark"
+      fuelConfig={{
+        connectors: [bsafeConnector],
+      }}
+    >
+      <App />
+    </FuelProvider>
+  </React.StrictMode>
+);
+```
 
-   ReactDOM.createRoot(document.getElementById('root')!).render(
-     <React.StrictMode>
-       <FuelProvider
-         theme={'dark'}
-         fuelConfig={{
-           connectors: [bsafe],
-           storage: null,
-         }}
-       >
-         <ChakraProvider theme={defaultTheme}>
-           <App />
-         </ChakraProvider>
-       </FuelProvider>
-     </React.StrictMode>
-   )
-   ```
+### 2. Connect to Vault
 
-   By wrapping our application with the Fuel provider, we gain access to various hooks that facilitate interaction with the fuel wallet:
+Use Fuel hooks to connect users:
 
-   ```tsx
-   const { fuel } = useFuel()
-   const { account } = useAccount()
-   const { disconnect } = useDisconnect()
-   const { isConnected } = useIsConnected()
-   const { isOpen, onOpen, onClose } = useDisclosure()
-   ```
+```tsx
+import { useConnectUI, useAccount, useIsConnected, useDisconnect } from '@fuels/react';
 
-   In addition to the hooks from the example, several more can be explored via the link.
+function ConnectButton() {
+  const { connect } = useConnectUI();
+  const { account } = useAccount();
+  const { isConnected } = useIsConnected();
+  const { disconnect } = useDisconnect();
 
-1. **Creating a Transaction**
+  if (isConnected) {
+    return (
+      <div>
+        <p>Connected: {account}</p>
+        <button onClick={() => disconnect()}>Disconnect</button>
+      </div>
+    );
+  }
 
-   When the user connects to the fuel wallet, they select a predicate previously created in the Bako Safe app. From there, the user can create transactions for that predicate and send them:
+  return <button onClick={() => connect()}>Connect Vault</button>;
+}
+```
 
-   ```tsx
-   async function handleTransfer() {
-     if (!account) return
-     const amount = bn.parseUnits(amountInput) ?? bn(1_000)
+### 3. Create Transactions
 
-     const provider = await FuelWalletProvider.create(BSafe.get('PROVIDER'))
+Once connected, create transactions from the vault:
 
-     const wallet = await fuel.getWallet(account, provider)
+```tsx
+import { useFuel, useAccount } from '@fuels/react';
+import { bn, Provider, Address } from 'fuels';
 
-     const result = await wallet.transfer(Address.fromString(addressInput), amount, BaseAssetId, {
-       gasPrice: BSafe.get('GAS_PRICE'),
-       gasLimit: BSafe.get('GAS_LIMIT'),
-     })
+function TransferForm() {
+  const { fuel } = useFuel();
+  const { account } = useAccount();
 
-     const { id, status } = await result.waitForResult()
-     console.log('result: ', { id, status })
-   }
-   ```
+  async function handleTransfer(recipient: string, amount: string) {
+    if (!account) return;
 
-   Transactions are not immediately broadcast to the network; instead, they are sent to the Bako Safe servers and wait for the vault subscribers who generated the transaction to sign it. Once all signature requirements are met, the transaction is broadcast to the network.
+    // Get provider and wallet
+    const provider = await Provider.create('https://mainnet.fuel.network/v1/graphql');
+    const wallet = await fuel.getWallet(account, provider);
+    const baseAssetId = provider.getBaseAssetId();
 
-1. **Calling a Contract**
+    // Create transfer
+    const result = await wallet.transfer(
+      Address.fromString(recipient),
+      bn.parseUnits(amount),
+      baseAssetId
+    );
 
-   The contract call operates similarly to a transaction. We use the vault again as a wallet and, having access to the contract's ABI generated earlier, call the contract's methods. Initially, create a simple contract to interact with Bako Safe:
+    // Wait for result
+    const { id, status } = await result.waitForResult();
+    console.log('Transaction:', { id, status });
+  }
 
-   1. Create a folder named **`sway`**.
-   2. Inside it, create a file **`src/main.sw`**:
+  return (
+    <form onSubmit={(e) => {
+      e.preventDefault();
+      const form = e.target as HTMLFormElement;
+      handleTransfer(form.recipient.value, form.amount.value);
+    }}>
+      <input name="recipient" placeholder="Recipient address" />
+      <input name="amount" placeholder="Amount" type="number" step="0.001" />
+      <button type="submit">Transfer</button>
+    </form>
+  );
+}
+```
 
-      ```tsx
-      contract;
-      use std::logging::log;
-      abi MyContract {
-          fn return_true(val1: u64) -> u64;
-      }
-      impl MyContract for Contract {
-          fn return_true(val1: u64) -> u64 {
-              log(val1);
-              val1
-          }
-      }
-      ```
+## Contract Calls
 
-   3. Add the file **`Forc.lock`**:
+Call smart contracts through the vault:
 
-      ```tsx
-      ;[[package]]
-      name = 'MyContract'
-      source = 'member'
-      dependencies = ['std'][[package]]
-      name = 'core'
-      source = 'path+from-root-BD9159206068AEC6'[[package]]
-      name = 'std'
-      source =
-        'git+https://github.com/fuellabs/sway?tag=v0.46.1#512a3386f8961185188302f391ccc96553d23a7a'
-      dependencies = ['core']
-      ```
+```tsx
+import { useFuel, useAccount } from '@fuels/react';
+import { Provider, Contract, bn } from 'fuels';
+import { MyContractAbi } from './contracts';
 
-   4. Add the file **`Forc.toml`**:
+function ContractCall() {
+  const { fuel } = useFuel();
+  const { account } = useAccount();
 
-      ```tsx
-      ;[project]
-      authors = ['FuelLabs']
-      entry = 'main.sw'
-      license = 'Apache-2.0'
-      name = 'MyContract'[dependencies]
-      ```
+  async function callContract() {
+    if (!account) return;
 
-   5. To set up the contract deployment on the network, add a file to the root of the project named **`fuels.config.ts`**:
+    const provider = await Provider.create('https://mainnet.fuel.network/v1/graphql');
+    const wallet = await fuel.getWallet(account, provider);
 
-      ```tsx
-      import { createConfig } from 'fuels'
+    // Connect to contract
+    const contract = new Contract(
+      '0xYourContractId...',
+      MyContractAbi,
+      wallet
+    );
 
-      export default createConfig({
-        providerUrl: 'https://beta-5.fuel.network/graphql',
-        output: './src/contracts/',
-        contracts: ['./sway'],
-        privateKey: <YOUR_PK />,
-      })
-      ```
+    // Call contract method
+    const { value, transactionId } = await contract.functions
+      .your_method(param1, param2)
+      .call();
 
-   6. At the root of the project, run the command **`yarn fuels build`**, and the folder **`src/contracts`** will be generated containing the build of our contract.
+    console.log('Result:', value);
+    console.log('Transaction:', transactionId);
+  }
 
-      ```tsx
-      yarn fuels build
-      ```
+  return <button onClick={callContract}>Call Contract</button>;
+}
+```
 
-   7. Deploy the contract to the network by executing the command **`yarn fuels deploy`**.
+## Transaction Flow
 
-      ```tsx
-      yarn fuels deploy
-      ```
+When a transaction is created through the connector:
 
-   8. Now we have our contract on the network, and we can interact with it through our DApp:
+1. **Transaction Created**: dApp creates transfer/contract call
+2. **Sent to Bako Safe**: Transaction queued for approval
+3. **Signers Notified**: Vault signers receive notifications
+4. **Signatures Collected**: Signers approve in Bako Safe app
+5. **Broadcast**: After threshold met, transaction is broadcast
+6. **Result Returned**: dApp receives transaction result
 
-      ```tsx
-      import { MyContractAbi__factory } from './contracts/contracts/factories/MyContractAbi__factory'
-      import contractIds from './contracts/contract-ids.json'
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│    dApp     │────▶│  Bako Safe  │────▶│  Fuel       │
+│             │     │  (Approval) │     │  Network    │
+└─────────────┘     └─────────────┘     └─────────────┘
+                          │
+                          ▼
+                    ┌─────────────┐
+                    │  Signers    │
+                    │  (Approve)  │
+                    └─────────────┘
+```
 
-      async function handleContractCall() {
-        if (!account) return
-        const provider = await FuelWalletProvider.create(BSafe.get('PROVIDER'))
-        const wallet = await fuel.getWallet(account, provider)
-        const contract = MyContractAbi__factory.connect(contractIds.myContract, wallet)
+## Available Hooks
 
-        const { value, transactionId } = await contract.functions
-          .return_true(10)
-          .txParams({
-            gasPrice: bn(BSafe.get('GAS_PRICE')),
-            gasLimit: bn(BSafe.get('GAS_LIMIT')),
-          })
-          .call()
-      }
-      ```
+From `@fuels/react`:
 
-   9. Now you have your application connected. Vault subscribers in the Bako Safe app also receive a notification requesting their signature.
+| Hook | Purpose |
+|------|---------|
+| `useFuel()` | Access Fuel instance |
+| `useAccount()` | Get connected account |
+| `useIsConnected()` | Check connection status |
+| `useConnectUI()` | Trigger connect dialog |
+| `useDisconnect()` | Disconnect wallet |
+| `useBalance()` | Get account balance |
+| `useWallet()` | Get wallet instance |
 
-   If you have any questions, please feel free to contact us through our channels.
+## Error Handling
 
-   [Discord](https://discord.gg/ZT4Sh2QDfq)
+```tsx
+async function safeTransfer(recipient: string, amount: string) {
+  try {
+    const provider = await Provider.create(networkUrl);
+    const wallet = await fuel.getWallet(account!, provider);
 
-   [Telegram](https://t.me/+lx2AxDkGc0sxZWYx)
+    const result = await wallet.transfer(
+      Address.fromString(recipient),
+      bn.parseUnits(amount),
+      provider.getBaseAssetId()
+    );
 
-   [X (Twitter)](https://twitter.com/bakosafe)
+    return await result.waitForResult();
+
+  } catch (error) {
+    if (error.message?.includes('rejected')) {
+      console.error('Transaction rejected by user');
+    } else if (error.message?.includes('insufficient')) {
+      console.error('Insufficient balance');
+    } else {
+      console.error('Transaction failed:', error);
+    }
+    throw error;
+  }
+}
+```
+
+## Next.js Setup
+
+For Next.js applications:
+
+```tsx
+// app/providers.tsx
+'use client';
+
+import { FuelProvider } from '@fuels/react';
+import { BSafeConnector } from 'bakosafe';
+
+const bsafeConnector = new BSafeConnector();
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <FuelProvider
+      theme="dark"
+      fuelConfig={{
+        connectors: [bsafeConnector],
+      }}
+    >
+      {children}
+    </FuelProvider>
+  );
+}
+```
+
+```tsx
+// app/layout.tsx
+import { Providers } from './providers';
+
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
+    </html>
+  );
+}
+```
+
+## Support
+
+If you have questions:
+
+- [Discord](https://discord.gg/ZT4Sh2QDfq)
+- [Telegram](https://t.me/+lx2AxDkGc0sxZWYx)
+- [X (Twitter)](https://twitter.com/bakosafe)
+
+## Next Steps
+
+- [SDK Documentation](/sdk/overview)
+- [Examples](/sdk/examples/overview)

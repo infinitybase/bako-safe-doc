@@ -1,0 +1,214 @@
+# Error Handling
+
+The SDK provides standardized error types and parsing utilities.
+
+## Error Types
+
+### TransferInstanceError
+
+```typescript
+enum TransferInstanceError {
+  REQUIRED_AUTH = 'Required credentials',
+  INVALID_PARAMETER = 'Invalid instance parameters'
+}
+```
+
+## Common Errors
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| `Required credentials` | Missing authentication | Authenticate before operation |
+| `Invalid instance parameters` | Wrong vault configuration | Check config format |
+| `Insufficient funds` | Not enough balance | Add funds to vault |
+| `Invalid address` | Malformed address | Verify address format |
+| `Not authorized` | No permission | Check signer permissions |
+| `Transaction failed` | On-chain failure | Check error details |
+
+## Error Handling Patterns
+
+### Basic Try-Catch
+
+```typescript
+try {
+  const vault = await Vault.fromAddress(address, provider);
+} catch (error) {
+  console.error('Failed to load vault:', error.message);
+}
+```
+
+### Typed Error Handling
+
+```typescript
+import { TransferInstanceError } from 'bakosafe';
+
+try {
+  const { tx } = await vault.transaction(params);
+} catch (error) {
+  if (error.message === TransferInstanceError.REQUIRED_AUTH) {
+    // Re-authenticate
+    await authenticate();
+  } else if (error.message === TransferInstanceError.INVALID_PARAMETER) {
+    // Check parameters
+    console.error('Invalid parameters:', params);
+  } else {
+    throw error;
+  }
+}
+```
+
+### API Error Handling
+
+```typescript
+try {
+  const provider = await BakoProvider.create(url, { apiToken });
+} catch (error) {
+  if (error.response) {
+    // Server responded with error
+    switch (error.response.status) {
+      case 400:
+        console.error('Bad request:', error.response.data);
+        break;
+      case 401:
+        console.error('Invalid or expired token');
+        break;
+      case 403:
+        console.error('Permission denied');
+        break;
+      case 404:
+        console.error('Resource not found');
+        break;
+      case 500:
+        console.error('Server error');
+        break;
+    }
+  } else if (error.request) {
+    // No response received
+    console.error('Network error - no response');
+  } else {
+    // Request setup error
+    console.error('Request error:', error.message);
+  }
+}
+```
+
+### Transaction Error Handling
+
+```typescript
+try {
+  const result = await vault.send(tx);
+} catch (error) {
+  if (error.message.includes('insufficient')) {
+    console.error('Insufficient funds for transaction');
+  } else if (error.message.includes('signature')) {
+    console.error('Signature verification failed');
+  } else if (error.message.includes('gas')) {
+    console.error('Gas estimation failed');
+  } else {
+    console.error('Transaction failed:', error);
+  }
+}
+```
+
+## Creating Custom Error Handler
+
+```typescript
+class BakoErrorHandler {
+  static handle(error: any): never {
+    // Log for debugging
+    console.error('Bako SDK Error:', {
+      message: error.message,
+      code: error.code,
+      response: error.response?.data
+    });
+
+    // Categorize error
+    if (this.isAuthError(error)) {
+      throw new AuthenticationError(error.message);
+    }
+    if (this.isNetworkError(error)) {
+      throw new NetworkError(error.message);
+    }
+    if (this.isValidationError(error)) {
+      throw new ValidationError(error.message);
+    }
+
+    throw error;
+  }
+
+  static isAuthError(error: any): boolean {
+    return error.response?.status === 401 ||
+           error.message.includes('credentials') ||
+           error.message.includes('token');
+  }
+
+  static isNetworkError(error: any): boolean {
+    return !error.response && error.request;
+  }
+
+  static isValidationError(error: any): boolean {
+    return error.response?.status === 400 ||
+           error.message.includes('invalid');
+  }
+}
+
+// Custom error classes
+class AuthenticationError extends Error {
+  name = 'AuthenticationError';
+}
+
+class NetworkError extends Error {
+  name = 'NetworkError';
+}
+
+class ValidationError extends Error {
+  name = 'ValidationError';
+}
+
+// Usage
+try {
+  await someOperation();
+} catch (error) {
+  BakoErrorHandler.handle(error);
+}
+```
+
+## Retry Logic
+
+```typescript
+async function withRetry<T>(
+  operation: () => Promise<T>,
+  maxRetries = 3,
+  delay = 1000
+): Promise<T> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      // Don't retry auth or validation errors
+      if (error.response?.status === 401 ||
+          error.response?.status === 400) {
+        throw error;
+      }
+
+      if (attempt === maxRetries) {
+        throw error;
+      }
+
+      console.log(`Attempt ${attempt} failed, retrying in ${delay}ms...`);
+      await new Promise(r => setTimeout(r, delay * attempt));
+    }
+  }
+
+  throw new Error('Max retries exceeded');
+}
+
+// Usage
+const vault = await withRetry(() =>
+  Vault.fromAddress(address, provider)
+);
+```
+
+## Next Steps
+
+- [Examples](/sdk/examples/overview)
+- [Reference](/sdk/reference/types)

@@ -1,0 +1,193 @@
+# Sending Transactions
+
+Execute transactions once all required signatures are collected.
+
+## When to Send
+
+A transaction can be sent when:
+- Required signature count is reached
+- Status is `PENDING_SENDER`
+- Transaction hasn't expired or been canceled
+
+## Sending a Transaction
+
+### Using vault.send()
+
+```typescript
+const { tx, hashTxId } = await vault.transaction({
+  name: 'Payment',
+  assets: [{ assetId, amount, to }]
+});
+
+// Wait for signatures...
+// Once threshold reached:
+
+const result = await vault.send(tx);
+
+console.log('Transaction ID:', result.id);
+console.log('Status:', result.status);
+```
+
+### Using vault.sendTransaction()
+
+```typescript
+const result = await vault.sendTransaction(tx);
+```
+
+## Response Format
+
+```typescript
+interface TransactionResponse {
+  id: string;           // On-chain transaction ID
+  status: string;       // Execution status
+  // ... additional Fuel transaction fields
+}
+```
+
+## Complete Flow Example
+
+```typescript
+import { BakoProvider, Vault, TransactionStatus } from 'bakosafe';
+
+async function executeTransaction() {
+  const provider = await BakoProvider.create(networkUrl, { apiToken });
+  const vault = await Vault.fromAddress(vaultAddress, provider);
+
+  // 1. Create transaction
+  const { tx, hashTxId } = await vault.transaction({
+    name: 'Scheduled Payment',
+    assets: [{
+      assetId: ETH_ASSET_ID,
+      amount: '1000000000',
+      to: recipientAddress
+    }]
+  });
+
+  console.log('Transaction created:', hashTxId);
+  console.log('Waiting for signatures...');
+
+  // 2. Wait for signatures
+  let ready = false;
+  while (!ready) {
+    const txData = await vault.transactionFromHash(hashTxId);
+
+    switch (txData.status) {
+      case TransactionStatus.AWAIT_REQUIREMENTS:
+        const signed = txData.witnesses.filter(w => w.status === 'done').length;
+        console.log(`Signatures: ${signed}/${txData.requiredSigners}`);
+        await sleep(5000);
+        break;
+
+      case TransactionStatus.PENDING_SENDER:
+        ready = true;
+        break;
+
+      case TransactionStatus.DECLINED:
+      case TransactionStatus.CANCELED:
+        throw new Error(`Transaction ${txData.status}`);
+
+      default:
+        await sleep(5000);
+    }
+  }
+
+  // 3. Send transaction
+  console.log('Sending transaction...');
+  const result = await vault.send(tx);
+
+  console.log('Success!');
+  console.log('Transaction ID:', result.id);
+
+  return result;
+}
+
+function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+```
+
+## Auto-Send Mode
+
+Bako Safe can automatically send transactions when the threshold is reached. This is configured per-vault in the Bako Safe app settings.
+
+When auto-send is enabled:
+- No need to call `vault.send()` manually
+- Transaction executes immediately when signatures are collected
+- Status goes directly from `AWAIT_REQUIREMENTS` to `PROCESS_ON_CHAIN`
+
+## Manual Send Control
+
+For more control, disable auto-send and manage execution programmatically:
+
+```typescript
+// Check if ready
+const txData = await vault.transactionFromHash(hashTxId);
+
+if (txData.status === TransactionStatus.PENDING_SENDER) {
+  // Additional checks before sending
+  const currentGasPrice = await provider.getGasPrice();
+
+  if (currentGasPrice.lt(maxAcceptableGas)) {
+    const result = await vault.send(tx);
+    console.log('Sent at optimal gas price');
+  } else {
+    console.log('Gas too high, waiting...');
+  }
+}
+```
+
+## Error Handling
+
+```typescript
+try {
+  const result = await vault.send(tx);
+  console.log('Success:', result.id);
+} catch (error) {
+  if (error.message.includes('insufficient funds')) {
+    console.error('Vault balance depleted since transaction creation');
+  } else if (error.message.includes('not ready')) {
+    console.error('Transaction not ready - signatures missing');
+  } else if (error.message.includes('already sent')) {
+    console.error('Transaction already executed');
+  } else if (error.message.includes('expired')) {
+    console.error('Transaction expired');
+  } else {
+    console.error('Send failed:', error.message);
+  }
+}
+```
+
+## Gas Estimation
+
+Before sending, gas is automatically estimated:
+
+```typescript
+// Get max gas for vault operations
+const maxGas = await vault.maxGasUsed();
+console.log('Estimated max gas:', maxGas.toString());
+
+// Prepare transaction with gas estimates
+const preparedTx = await vault.prepareTransaction(tx);
+```
+
+## Post-Send Verification
+
+```typescript
+const result = await vault.send(tx);
+
+// Wait for confirmation
+const receipt = await result.wait();
+
+if (receipt.status === 'success') {
+  console.log('Transaction confirmed!');
+  console.log('Block:', receipt.blockId);
+  console.log('Gas used:', receipt.gasUsed.toString());
+} else {
+  console.error('Transaction failed on-chain');
+}
+```
+
+## Next Steps
+
+- [Status Monitoring](/sdk/transactions/status)
+- [Examples](/sdk/examples/overview)

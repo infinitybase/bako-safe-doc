@@ -1,0 +1,273 @@
+# Provider Methods
+
+Complete reference of BakoProvider methods.
+
+## Static Methods
+
+### create()
+
+Create a provider with API token authentication.
+
+```typescript
+static async create(
+  url: string,
+  options: BakoProviderOptions | BakoProviderAPITokenOptions
+): Promise<BakoProvider>
+```
+
+**Example:**
+```typescript
+const provider = await BakoProvider.create(
+  'https://mainnet.fuel.network/v1/graphql',
+  { apiToken: 'your-token' }
+);
+```
+
+### setup()
+
+Initialize interactive authentication flow.
+
+```typescript
+static async setup(
+  params: BakoProviderSetup
+): Promise<BakoProviderAuth>
+```
+
+**Example:**
+```typescript
+const auth = await BakoProvider.setup({
+  address: walletAddress,
+  provider: networkUrl,
+  encoder: TypeUser.FUEL
+});
+// Returns: { code, token, encoder }
+```
+
+### authenticate()
+
+Complete authentication with signed challenge.
+
+```typescript
+static async authenticate(
+  options: BakoProviderAuthOptions
+): Promise<BakoProvider>
+```
+
+**Example:**
+```typescript
+const provider = await BakoProvider.authenticate({
+  challenge: auth.code,
+  signature: signedChallenge,
+  encoder: TypeUser.FUEL,
+  address: walletAddress,
+  serverUrl: 'https://api.bako.global'
+});
+```
+
+## Instance Methods
+
+### getWorkspaces()
+
+Retrieve user's workspaces.
+
+```typescript
+async getWorkspaces(): Promise<Workspace[]>
+```
+
+**Example:**
+```typescript
+const workspaces = await provider.getWorkspaces();
+workspaces.forEach(ws => {
+  console.log(`${ws.name} (${ws.id})`);
+});
+```
+
+### getToken()
+
+Get user's token balance.
+
+```typescript
+async getToken(): Promise<number>
+```
+
+### createPredicate()
+
+Create a new predicate (vault).
+
+```typescript
+async createPredicate(
+  payload: CreatePredicatePayload
+): Promise<PredicateResponse>
+```
+
+**Example:**
+```typescript
+const predicate = await provider.createPredicate({
+  name: 'My Vault',
+  configurable: {
+    SIGNATURES_COUNT: 2,
+    SIGNERS: [address1, address2, address3]
+  }
+});
+```
+
+### findByAddress()
+
+Find a predicate by its address.
+
+```typescript
+async findByAddress(
+  predicateAddress: string
+): Promise<PredicateResponse>
+```
+
+**Example:**
+```typescript
+const predicate = await provider.findByAddress('fuel1...');
+```
+
+### authInfo()
+
+Get current user's authentication info.
+
+```typescript
+async authInfo(): Promise<UserAuthResponse>
+```
+
+### createTransaction()
+
+Create a new transaction.
+
+```typescript
+async createTransaction(
+  params: ICreateTransactionPayload
+): Promise<TransactionResponse>
+```
+
+### findTransactionByHash()
+
+Find transaction by hash.
+
+```typescript
+async findTransactionByHash(
+  hash: string
+): Promise<TransactionResponse>
+```
+
+### signTransaction()
+
+Sign a pending transaction.
+
+```typescript
+async signTransaction(
+  params: SignTransactionParams
+): Promise<SignResponse>
+```
+
+### sendTransaction()
+
+Send a fully signed transaction.
+
+```typescript
+async sendTransaction(
+  hash: string
+): Promise<TransactionResult>
+```
+
+### userWallet()
+
+Get user's wallet information.
+
+```typescript
+async userWallet(): Promise<WalletResponse>
+```
+
+### setCredentials()
+
+Update provider credentials.
+
+```typescript
+setCredentials(
+  auth: AuthService
+): void
+```
+
+## dApp Connection Methods
+
+### createDapp()
+
+Register a dApp connection.
+
+```typescript
+async createDapp(
+  dapp: DappPayload
+): Promise<DappResponse>
+```
+
+### disconnectDapp()
+
+Disconnect a dApp session.
+
+```typescript
+async disconnectDapp(
+  sessionId: string
+): Promise<void>
+```
+
+### changeAccount()
+
+Switch active account in a session.
+
+```typescript
+async changeAccount(
+  sessionId: string,
+  vault: string
+): Promise<void>
+```
+
+## Properties
+
+### cliAuth
+
+CLI authentication data (when using API token).
+
+```typescript
+cliAuth?: CLIAuth
+```
+
+**Example:**
+```typescript
+if (provider.cliAuth) {
+  console.log('Vault address:', provider.cliAuth.address);
+  console.log('Version:', provider.cliAuth.version);
+}
+```
+
+## Type Definitions
+
+```typescript
+interface Workspace {
+  id: string;
+  name: string;
+  avatar: string;
+}
+
+interface UserAuthResponse {
+  user_id: string;
+  address: string;
+  avatar: string;
+  workspace: Workspace;
+}
+
+interface CLIAuth {
+  code: string;
+  address: string;
+  configurable: any;
+  version: string;
+}
+```
+
+## Next Steps
+
+- [Provider Services](/sdk/provider/services)
+- [Vault Operations](/sdk/vault/overview)
